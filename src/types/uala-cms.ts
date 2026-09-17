@@ -4,7 +4,7 @@ export type TenantSessionStatus = "loading" | "unauthenticated" | "ready" | "err
 
 export type DeliveryType = "digitale" | "fisico";
 
-export type ProductStatus = "bozza" | "pubblicato";
+export type ProductStatus = "bozza" | "pubblicato" | "in_pausa" | "archiviato";
 
 export interface TenantRecord {
   id: string;
@@ -23,21 +23,56 @@ export interface TenantSessionState {
   hasModule: (moduleName: string) => boolean;
 }
 
+export interface ProductImageRow {
+  id: string;
+  tenant_id?: string;
+  product_id: string;
+  image_url: string;
+  position: number;
+  created_at?: string;
+}
+
+export interface ProductImageDraft {
+  id?: string;
+  image_url: string;
+  position: number;
+}
+
 export interface ProductRow {
+  id: string;
+  tenant_id?: string;
   name: string;
-  category: string;
+  category: string | null;
+  short_description: string | null;
+  long_description: string | null;
   price: number | string | null;
   discount_price: number | string | null;
-  status: ProductStatus | string | null;
+  delivery_type: DeliveryType;
+  stock: number | null;
+  status: ProductStatus;
+  slug: string | null;
+  seo_title: string | null;
+  seo_description: string | null;
+  badge: string | null;
+  promo_scade_il: string | null;
+  publish_at: string | null;
+  created_at?: string;
 }
 
 export interface ProductFormValues {
   name: string;
   category: string;
-  short_description: string;
-  long_description: string;
+  badge: string;
   price: string;
   discount_price: string;
+  promo_scade_il: string;
+  short_description: string;
+  long_description: string;
+  images: ProductImageDraft[];
+  slug: string;
+  seo_title: string;
+  seo_description: string;
   delivery_type: DeliveryType;
-  status: ProductStatus;
+  stock: string;
+  sold_out: boolean;
 }
