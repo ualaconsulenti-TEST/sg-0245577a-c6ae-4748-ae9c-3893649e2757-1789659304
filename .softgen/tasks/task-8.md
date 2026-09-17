@@ -1,6 +1,6 @@
 ---
 title: Pagina impostazione password invito
-status: in_progress
+status: done
 priority: high
 type: feature
 tags: [super-admin, auth, invite]
@@ -13,10 +13,10 @@ position: 8
 Creare una nuova pagina `/imposta-password` per completare l'invito Supabase impostando una nuova password con `supabase.auth.updateUser`. Aggiornare solo `SuperAdminModule.tsx` per passare `redirect_to` alla Edge Function `invite-tenant-user` con valore `window.location.origin + "/imposta-password"`.
 
 ## Checklist
-- [ ] Creare `src/pages/imposta-password.tsx` con form "Nuova password" e "Conferma password"
-- [ ] Validare che le due password coincidano prima di chiamare `supabase.auth.updateUser({ password })`
-- [ ] Reindirizzare alla dashboard principale del CMS dopo successo
-- [ ] Aggiungere `redirect_to` nel body della chiamata `invite-tenant-user` in `SuperAdminModule.tsx`
+- [x] Creare `src/pages/imposta-password.tsx` con form "Nuova password" e "Conferma password"
+- [x] Validare che le due password coincidano prima di chiamare `supabase.auth.updateUser({ password })`
+- [x] Reindirizzare alla dashboard principale del CMS dopo successo
+- [x] Aggiungere `redirect_to` nel body della chiamata `invite-tenant-user` in `SuperAdminModule.tsx`
 
 ## Acceptance
 La pagina `/imposta-password` permette a un invitato di impostare la password e accedere.
