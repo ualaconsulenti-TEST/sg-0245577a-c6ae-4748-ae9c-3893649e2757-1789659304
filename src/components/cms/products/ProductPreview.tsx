@@ -39,7 +39,7 @@ export function ProductPreview({ form, isSaving, onBack, onPublishNow, onSchedul
   const [showScheduler, setShowScheduler] = useState(false);
   const [scheduledAt, setScheduledAt] = useState("");
   const [scheduleError, setScheduleError] = useState<string | null>(null);
-  const coverImage = form.images[0]?.image_url;
+  const coverImage = form.images[0];
 
   function handleSchedule(): void {
     if (!showScheduler) {
@@ -75,7 +75,7 @@ export function ProductPreview({ form, isSaving, onBack, onPublishNow, onSchedul
 
         <article className="overflow-hidden rounded-3xl border border-fuchsia-100 bg-white">
           {coverImage ? (
-            <img src={coverImage} alt={form.name || "Anteprima prodotto"} className="h-72 w-full object-cover" />
+            <img src={coverImage.image_url} alt={coverImage.alt_text || form.name || "Anteprima prodotto"} className="h-72 w-full object-cover" />
           ) : (
             <div className="flex h-72 items-center justify-center bg-fuchsia-50 text-sm text-slate-500">Nessuna foto caricata</div>
           )}
@@ -83,7 +83,14 @@ export function ProductPreview({ form, isSaving, onBack, onPublishNow, onSchedul
           <div className="space-y-5 p-6">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                {form.badge.trim() ? <Badge className="mb-3 bg-primary text-white">{form.badge.trim()}</Badge> : null}
+                <div className="mb-3 flex flex-wrap gap-2">
+                  {form.badge.trim() ? <Badge className="bg-primary text-white">{form.badge.trim()}</Badge> : null}
+                  {form.in_evidenza ? (
+                    <Badge variant="outline" className="border-primary/30 bg-primary/10 text-primary">
+                      In evidenza
+                    </Badge>
+                  ) : null}
+                </div>
                 <h2 className="text-3xl font-semibold tracking-tight text-slate-950">{form.name || "Nome prodotto"}</h2>
                 <p className="mt-2 text-sm text-slate-500">{form.category || "Categoria"}</p>
               </div>

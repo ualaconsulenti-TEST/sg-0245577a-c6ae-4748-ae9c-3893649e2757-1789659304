@@ -9,6 +9,7 @@ interface ProductListProps {
   showArchived: boolean;
   onToggleArchived: () => void;
   onEdit: (product: ProductRow) => void;
+  onDuplicate: (product: ProductRow) => void;
   onArchive: (productId: string) => void;
   onPause: (productId: string) => void;
   onReactivate: (productId: string) => void;
@@ -35,6 +36,7 @@ export function ProductList({
   showArchived,
   onToggleArchived,
   onEdit,
+  onDuplicate,
   onArchive,
   onPause,
   onReactivate,
@@ -55,7 +57,7 @@ export function ProductList({
 
       <div className="overflow-hidden rounded-2xl border border-fuchsia-200">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[980px] text-left text-sm">
+          <table className="w-full min-w-[1080px] text-left text-sm">
             <thead className="bg-fuchsia-50 text-xs uppercase tracking-[0.16em] text-slate-600">
               <tr>
                 <th className="px-4 py-3 font-semibold">Nome</th>
@@ -78,7 +80,14 @@ export function ProductList({
                 visibleProducts.map((product) => (
                   <tr key={product.id} className="align-top text-slate-700">
                     <td className="px-4 py-4">
-                      <p className="font-medium text-slate-950">{product.name || "—"}</p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="font-medium text-slate-950">{product.name || "—"}</p>
+                        {product.in_evidenza ? (
+                          <Badge variant="outline" className="border-primary/30 bg-primary/10 text-primary">
+                            In evidenza
+                          </Badge>
+                        ) : null}
+                      </div>
                       <p className="mt-1 text-xs text-slate-500">{product.category || "Senza categoria"}</p>
                     </td>
                     <td className="px-4 py-4">{product.badge ? <Badge className="bg-primary text-white">{product.badge}</Badge> : "—"}</td>
@@ -98,6 +107,9 @@ export function ProductList({
                       <div className="flex flex-wrap gap-2">
                         <Button type="button" size="sm" variant="outline" onClick={() => onEdit(product)}>
                           Modifica
+                        </Button>
+                        <Button type="button" size="sm" variant="outline" onClick={() => onDuplicate(product)}>
+                          Duplica
                         </Button>
                         {product.status === "pubblicato" ? (
                           <Button type="button" size="sm" variant="outline" onClick={() => onPause(product.id)}>

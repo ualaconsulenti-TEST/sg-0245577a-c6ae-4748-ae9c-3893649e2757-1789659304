@@ -6,19 +6,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import type { DeliveryType, ProductFormValues } from "@/types/uala-cms";
+import type { DeliveryType, ProductFormValues, ProductRow } from "@/types/uala-cms";
 import { fileToDataUrl } from "./productUtils";
 
 interface ProductFormProps {
   form: ProductFormValues;
   formError: string | null;
   isEditing: boolean;
+  relatedProducts: ProductRow[];
   onChange: (form: ProductFormValues) => void;
   onContinue: (event: FormEvent<HTMLFormElement>) => void;
   onCancelEdit: () => void;
 }
 
-export function ProductForm({ form, formError, isEditing, onChange, onContinue, onCancelEdit }: ProductFormProps) {
+export function ProductForm({ form, formError, isEditing, relatedProducts, onChange, onContinue, onCancelEdit }: ProductFormProps) {
   const longDescriptionRef = useRef<HTMLTextAreaElement | null>(null);
 
   function updateField<K extends keyof ProductFormValues>(field: K, value: ProductFormValues[K]): void {
@@ -39,6 +40,7 @@ export function ProductForm({ form, formError, isEditing, onChange, onContinue, 
     const newImages = imageUrls.map((imageUrl, index) => ({
       image_url: imageUrl,
       position: form.images.length + index,
+      alt_text: "",
     }));
 
     updateField("images", [...form.images, ...newImages]);
@@ -75,6 +77,22 @@ export function ProductForm({ form, formError, isEditing, onChange, onContinue, 
           ...image,
           position: imageIndex,
         })),
+    );
+  }
+
+  function updateImageAltText(index: number, value: string): void {
+    updateField(
+      "images",
+      form.images.map((image, imageIndex) => (imageIndex === index ? { ...image, alt_text: value } : image)),
+    );
+  }
+
+  function toggleRelatedProduct(productId: string, checked: boolean): void {
+    const currentIds = form.related_product_ids;
+
+    updateField(
+      "related_product_ids",
+      checked ? [...currentIds, productId] : currentIds.filter((currentId) => currentId !== productId),
     );
   }
 
@@ -123,6 +141,10 @@ export function ProductForm({ form, formError, isEditing, onChange, onContinue, 
                 <Input id="product-badge" placeholder="Novità, Ultimi posti..." value={form.badge} onChange={(event) => updateField("badge", event.target.value)} />
               </div>
             </div>
+            <div className="flex items-center gap-3 rounded-xl border border-fuchsia-100 px-3 py-2">
+              <Switch checked={form.in_evidenza} onCheckedChange={(checked) => updateField("in_evidenza", checked)} />
+              <span className="text-sm text-slate-700">Prodotto in evidenza</span>
+            </div>
           </section>
 
           <section className="space-y-4 rounded-2xl border border-fuchsia-100 p-4">
@@ -140,6 +162,20 @@ export function ProductForm({ form, formError, isEditing, onChange, onContinue, 
                 <Label htmlFor="product-promo">Promo fino al</Label>
                 <Input id="product-promo" type="date" value={form.promo_scade_il} onChange={(event) => updateField("promo_scade_il", event.target.value)} />
                 <p className="text-xs leading-5 text-slate-500">Il prezzo scontato torna al prezzo pieno dopo questa data.</p>
+              </div>
+            </div>
+          </section>
+
+          <section className="space-y-4 rounded-2xl border border-fuchsia-100 p-4">
+            <h3 className="font-semibold text-slate-950">Urgenza e disponibilità</h3>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="flex items-center gap-3 rounded-xl border border-fuchsia-100 px-3 py-2">
+                <Switch checked={form.mostra_countdown} onCheckedChange={(checked) => updateField("mostra_countdown", checked)} />
+                <span className="text-sm text-slate-700">Mostra countdown promozione</span>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="available-quantity">Quantità disponibile</Label>
+                <Input id="available-quantity" type="number" min="0" placeholder="Lascia vuoto se non rilevante" value={form.quantita_disponibile} onChange={(event) => updateField("quantita_disponibile", event.target.value)} />
               </div>
             </div>
           </section>
@@ -170,9 +206,13 @@ export function ProductForm({ form, formError, isEditing, onChange, onContinue, 
             {form.images.length > 0 ? (
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {form.images.map((image, index) => (
-                  <div key={`${image.image_url}-${index}`} className="rounded-2xl border border-fuchsia-100 p-3">
-                    <img src={image.image_url} alt={`Foto prodotto ${index + 1}`} className="h-28 w-full rounded-xl object-cover" />
-                    <div className="mt-3 flex flex-wrap gap-2">
+                  <div key={`${image.id || image.image_url}-${index}`} className="space-y-3 rounded-2xl border border-fuchsia-100 p-3">
+                    <img src={image.image_url} alt={image.alt_text || `Foto prodotto ${index + 1}`} className="h-28 w-full rounded-xl object-cover" />
+                    <div className="space-y-2">
+                      <Label htmlFor={`image-alt-${index}`}>Descrizione immagine (per la ricerca Google)</Label>
+                      <Input id={`image-alt-${index}`} value={image.alt_text} onChange={(event) => updateImageAltText(index, event.target.value)} />
+                    </div>
+                    <div className="flex flex-wrap gap-2">
                       <Button type="button" size="sm" variant="outline" onClick={() => moveImage(index, -1)} disabled={index === 0}>
                         Su
                       </Button>
@@ -190,11 +230,35 @@ export function ProductForm({ form, formError, isEditing, onChange, onContinue, 
           </section>
 
           <section className="space-y-4 rounded-2xl border border-fuchsia-100 p-4">
+            <h3 className="font-semibold text-slate-950">Prodotti correlati</h3>
+            {relatedProducts.length > 0 ? (
+              <div className="grid gap-2 sm:grid-cols-2">
+                {relatedProducts.map((product) => (
+                  <label key={product.id} className="flex items-center gap-3 rounded-xl border border-fuchsia-100 px-3 py-2 text-sm text-slate-700">
+                    <input type="checkbox" checked={form.related_product_ids.includes(product.id)} onChange={(event) => toggleRelatedProduct(product.id, event.target.checked)} />
+                    <span>{product.name}</span>
+                  </label>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-slate-500">Nessun altro prodotto disponibile.</p>
+            )}
+          </section>
+
+          <section className="space-y-4 rounded-2xl border border-fuchsia-100 p-4">
             <h3 className="font-semibold text-slate-950">SEO</h3>
             <div className="grid gap-4 md:grid-cols-3">
-              <Input placeholder="slug" value={form.slug} onChange={(event) => updateField("slug", event.target.value)} />
-              <Input placeholder="seo title" value={form.seo_title} onChange={(event) => updateField("seo_title", event.target.value)} />
-              <Input placeholder="seo description" value={form.seo_description} onChange={(event) => updateField("seo_description", event.target.value)} />
+              <div className="space-y-2">
+                <Input placeholder="slug" value={form.slug} onChange={(event) => updateField("slug", event.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Input placeholder="seo title" value={form.seo_title} onChange={(event) => updateField("seo_title", event.target.value)} />
+                <p className="text-xs text-slate-500">{form.seo_title.length}/60 caratteri (ideale 50-60)</p>
+              </div>
+              <div className="space-y-2">
+                <Input placeholder="seo description" value={form.seo_description} onChange={(event) => updateField("seo_description", event.target.value)} />
+                <p className="text-xs text-slate-500">{form.seo_description.length}/160 caratteri (ideale 150-160)</p>
+              </div>
             </div>
           </section>
 
@@ -216,7 +280,9 @@ export function ProductForm({ form, formError, isEditing, onChange, onContinue, 
           </section>
 
           <div className="flex flex-wrap gap-3">
-            <Button type="submit" className="bg-primary hover:bg-primary/90">Continua</Button>
+            <Button type="submit" className="bg-primary hover:bg-primary/90">
+              Continua
+            </Button>
             {isEditing ? (
               <Button type="button" variant="outline" onClick={onCancelEdit}>
                 Annulla modifica

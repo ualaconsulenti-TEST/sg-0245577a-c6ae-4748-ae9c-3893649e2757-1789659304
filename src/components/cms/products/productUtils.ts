@@ -4,12 +4,16 @@ export const emptyProductForm: ProductFormValues = {
   name: "",
   category: "",
   badge: "",
+  in_evidenza: false,
   price: "",
   discount_price: "",
   promo_scade_il: "",
+  mostra_countdown: false,
+  quantita_disponibile: "",
   short_description: "",
   long_description: "",
   images: [],
+  related_product_ids: [],
   slug: "",
   seo_title: "",
   seo_description: "",
@@ -64,16 +68,19 @@ export function slugify(value: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
-export function productToForm(product: ProductRow, images: ProductImageRow[]): ProductFormValues {
+export function productToForm(product: ProductRow, images: ProductImageRow[], relatedProductIds: string[] = []): ProductFormValues {
   const stockValue = product.stock === null || product.stock === undefined ? "" : String(product.stock);
 
   return {
     name: product.name || "",
     category: product.category || "",
     badge: product.badge || "",
+    in_evidenza: product.in_evidenza,
     price: product.price === null || product.price === undefined ? "" : String(product.price),
     discount_price: product.discount_price === null || product.discount_price === undefined ? "" : String(product.discount_price),
     promo_scade_il: product.promo_scade_il ? product.promo_scade_il.slice(0, 10) : "",
+    mostra_countdown: product.mostra_countdown,
+    quantita_disponibile: product.quantita_disponibile === null || product.quantita_disponibile === undefined ? "" : String(product.quantita_disponibile),
     short_description: product.short_description || "",
     long_description: product.long_description || "",
     images: images
@@ -83,7 +90,9 @@ export function productToForm(product: ProductRow, images: ProductImageRow[]): P
         id: image.id,
         image_url: image.image_url,
         position: index,
+        alt_text: image.alt_text || "",
       })),
+    related_product_ids: relatedProductIds,
     slug: product.slug || "",
     seo_title: product.seo_title || "",
     seo_description: product.seo_description || "",

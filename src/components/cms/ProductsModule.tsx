@@ -4,7 +4,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenantSession } from "@/hooks/use-tenant-session";
-import type { ProductFormValues, ProductImageRow, ProductRow, ProductStatus } from "@/types/uala-cms";
+import type { ProductFormValues, ProductImageRow, ProductRelatedRow, ProductRow, ProductStatus } from "@/types/uala-cms";
 import { ProductForm } from "./products/ProductForm";
 import { ProductList } from "./products/ProductList";
 import { ProductPreview } from "./products/ProductPreview";
@@ -19,9 +19,12 @@ type ProductPayload = {
   name: string;
   category: string | null;
   badge: string | null;
+  in_evidenza: boolean;
   price: number;
   discount_price: number | null;
   promo_scade_il: string | null;
+  mostra_countdown: boolean;
+  quantita_disponibile: number | null;
   short_description: string | null;
   long_description: string | null;
   slug: string | null;
@@ -30,7 +33,7 @@ type ProductPayload = {
   delivery_type: string;
   stock: number | null;
   status: ProductStatus;
-  publish_at: string;
+  publish_at: string | null;
 };
 
 export function ProductsModule() {
@@ -38,6 +41,7 @@ export function ProductsModule() {
   const tenantId = tenantSession.tenant?.id;
   const [products, setProducts] = useState<ProductRow[]>([]);
   const [images, setImages] = useState<ProductImageRow[]>([]);
+  const [relatedRows, setRelatedRows] = useState<ProductRelatedRow[]>([]);
   const [form, setForm] = useState<ProductFormValues>(emptyProductForm);
   const [formMode, setFormMode] = useState<FormMode>("form");
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
@@ -55,44 +59,16 @@ export function ProductsModule() {
     }, {});
   }, [images]);
 
-  const loadProducts = useCallback(async (): Promise<void> => {
-    setIsLoadingProducts(true);
-    setListError(null);
+  const relatedIdsByProduct = useMemo(() => {
+    return relatedRows.reduce<Record<string, string[]>>((groups, row) => {
+      groups[row.product_id] = [...(groups[row.product_id] || []), row.related_product_id];
+      return groups;
+    }, {});
+  }, [relatedRows]);
 
-    const { data: productRows, error: productsError } = await cmsSupabase
-      .from("products")
-      .select("id, tenant_id, name, category, short_description, long_description, price, discount_price, delivery_type, stock, status, slug, seo_title, seo_description, badge, promo_scade_il, publish_at, created_at")
-      .order("created_at", { ascending: false });
-
-    if (productsError) {
-      setProducts([]);
-      setImages([]);
-      setListError(productsError.message);
-      setIsLoadingProducts(false);
-      return;
-    }
-
-    const { data: imageRows, error: imagesError } = await cmsSupabase
-      .from("product_images")
-      .select("id, tenant_id, product_id, image_url, position, created_at")
-      .order("position", { ascending: true });
-
-    if (imagesError) {
-      setProducts((productRows || []).map(normalizeProductRow));
-      setImages([]);
-      setListError(imagesError.message);
-      setIsLoadingProducts(false);
-      return;
-    }
-
-    setProducts((productRows || []).map(normalizeProductRow));
-    setImages((imageRows || []) as ProductImageRow[]);
-    setIsLoadingProducts(false);
-  }, []);
-
-  useEffect(() => {
-    void loadProducts();
-  }, [loadProducts]);
+  const relatedProducts = useMemo(() => {
+    return products.filter((product) => product.id !== editingProductId);
+  }, [editingProductId, products]);
 
   function normalizeProductRow(row: Record<string, unknown>): ProductRow {
     return {
@@ -113,9 +89,67 @@ export function ProductsModule() {
       badge: typeof row.badge === "string" ? row.badge : null,
       promo_scade_il: typeof row.promo_scade_il === "string" ? row.promo_scade_il : null,
       publish_at: typeof row.publish_at === "string" ? row.publish_at : null,
+      mostra_countdown: row.mostra_countdown === true,
+      quantita_disponibile: typeof row.quantita_disponibile === "number" ? row.quantita_disponibile : null,
+      in_evidenza: row.in_evidenza === true,
       created_at: typeof row.created_at === "string" ? row.created_at : undefined,
     };
   }
+
+  const loadProducts = useCallback(async (): Promise<void> => {
+    setIsLoadingProducts(true);
+    setListError(null);
+
+    const { data: productRows, error: productsError } = await cmsSupabase
+      .from("products")
+      .select("id, tenant_id, name, category, short_description, long_description, price, discount_price, delivery_type, stock, status, slug, seo_title, seo_description, badge, promo_scade_il, publish_at, mostra_countdown, quantita_disponibile, in_evidenza, created_at")
+      .order("created_at", { ascending: false });
+
+    if (productsError) {
+      setProducts([]);
+      setImages([]);
+      setRelatedRows([]);
+      setListError(productsError.message);
+      setIsLoadingProducts(false);
+      return;
+    }
+
+    const { data: imageRows, error: imagesError } = await cmsSupabase
+      .from("product_images")
+      .select("id, tenant_id, product_id, image_url, position, alt_text, created_at")
+      .order("position", { ascending: true });
+
+    if (imagesError) {
+      setProducts((productRows || []).map(normalizeProductRow));
+      setImages([]);
+      setRelatedRows([]);
+      setListError(imagesError.message);
+      setIsLoadingProducts(false);
+      return;
+    }
+
+    const { data: relatedData, error: relatedError } = await cmsSupabase
+      .from("product_related")
+      .select("id, tenant_id, product_id, related_product_id, created_at");
+
+    if (relatedError) {
+      setProducts((productRows || []).map(normalizeProductRow));
+      setImages((imageRows || []) as ProductImageRow[]);
+      setRelatedRows([]);
+      setListError(relatedError.message);
+      setIsLoadingProducts(false);
+      return;
+    }
+
+    setProducts((productRows || []).map(normalizeProductRow));
+    setImages((imageRows || []) as ProductImageRow[]);
+    setRelatedRows((relatedData || []) as ProductRelatedRow[]);
+    setIsLoadingProducts(false);
+  }, []);
+
+  useEffect(() => {
+    void loadProducts();
+  }, [loadProducts]);
 
   function resetForm(): void {
     setForm(emptyProductForm);
@@ -128,6 +162,7 @@ export function ProductsModule() {
     const price = Number(form.price);
     const discountPrice = form.discount_price.trim() === "" ? null : Number(form.discount_price);
     const stock = form.stock.trim() === "" ? null : Number(form.stock);
+    const availableQuantity = form.quantita_disponibile.trim() === "" ? null : Number(form.quantita_disponibile);
 
     if (!form.name.trim()) {
       setFormError("Il nome prodotto è obbligatorio.");
@@ -141,6 +176,11 @@ export function ProductsModule() {
 
     if (discountPrice !== null && !Number.isFinite(discountPrice)) {
       setFormError("Inserisci un prezzo scontato valido oppure lascia il campo vuoto.");
+      return false;
+    }
+
+    if (availableQuantity !== null && (!Number.isInteger(availableQuantity) || availableQuantity < 0)) {
+      setFormError("Inserisci una quantità disponibile valida oppure lascia il campo vuoto.");
       return false;
     }
 
@@ -162,16 +202,19 @@ export function ProductsModule() {
     }
   }
 
-  function buildPayload(status: ProductStatus, publishAt: string): ProductPayload {
+  function buildPayload(status: ProductStatus, publishAt: string | null): ProductPayload {
     const stock = form.delivery_type === "fisico" ? (form.sold_out ? 0 : form.stock.trim() === "" ? null : Number(form.stock)) : null;
 
     return {
       name: form.name.trim(),
       category: form.category.trim() || null,
       badge: form.badge.trim() || null,
+      in_evidenza: form.in_evidenza,
       price: Number(form.price),
       discount_price: form.discount_price.trim() === "" ? null : Number(form.discount_price),
       promo_scade_il: form.promo_scade_il ? new Date(form.promo_scade_il).toISOString() : null,
+      mostra_countdown: form.mostra_countdown,
+      quantita_disponibile: form.quantita_disponibile.trim() === "" ? null : Number(form.quantita_disponibile),
       short_description: form.short_description.trim() || null,
       long_description: form.long_description.trim() || null,
       slug: form.slug.trim() || slugify(form.name),
@@ -196,9 +239,30 @@ export function ProductsModule() {
       product_id: productId,
       image_url: image.image_url,
       position: index,
+      alt_text: image.alt_text.trim() || null,
     }));
 
     const { error } = await cmsSupabase.from("product_images").insert(rows);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+  }
+
+  async function syncRelatedProducts(productId: string): Promise<void> {
+    await cmsSupabase.from("product_related").delete().eq("product_id", productId);
+
+    if (!tenantId || form.related_product_ids.length === 0) {
+      return;
+    }
+
+    const rows = form.related_product_ids.map((relatedProductId) => ({
+      tenant_id: tenantId,
+      product_id: productId,
+      related_product_id: relatedProductId,
+    }));
+
+    const { error } = await cmsSupabase.from("product_related").insert(rows);
 
     if (error) {
       throw new Error(error.message);
@@ -245,6 +309,7 @@ export function ProductsModule() {
 
       if (productId) {
         await syncImages(productId);
+        await syncRelatedProducts(productId);
       }
 
       resetForm();
@@ -268,9 +333,48 @@ export function ProductsModule() {
     await loadProducts();
   }
 
+  async function duplicateProduct(product: ProductRow): Promise<void> {
+    if (!tenantId) {
+      setListError("Cliente non disponibile. Ricarica la pagina e riprova.");
+      return;
+    }
+
+    const payload: ProductPayload = {
+      tenant_id: tenantId,
+      name: product.name,
+      category: product.category,
+      badge: product.badge,
+      in_evidenza: product.in_evidenza,
+      price: Number(product.price || 0),
+      discount_price: product.discount_price === null || product.discount_price === undefined ? null : Number(product.discount_price),
+      promo_scade_il: product.promo_scade_il,
+      mostra_countdown: product.mostra_countdown,
+      quantita_disponibile: product.quantita_disponibile,
+      short_description: product.short_description,
+      long_description: product.long_description,
+      slug: null,
+      seo_title: product.seo_title,
+      seo_description: product.seo_description,
+      delivery_type: product.delivery_type,
+      stock: product.stock,
+      status: "bozza",
+      publish_at: product.publish_at,
+    };
+
+    const { error } = await cmsSupabase.from("products").insert(payload);
+
+    if (error) {
+      setListError(error.message);
+      return;
+    }
+
+    setSuccessMessage("Prodotto duplicato in bozza.");
+    await loadProducts();
+  }
+
   function handleEdit(product: ProductRow): void {
     setEditingProductId(product.id);
-    setForm(productToForm(product, imagesByProduct[product.id] || []));
+    setForm(productToForm(product, imagesByProduct[product.id] || [], relatedIdsByProduct[product.id] || []));
     setFormMode("form");
     setFormError(null);
     setSuccessMessage(null);
@@ -300,6 +404,7 @@ export function ProductsModule() {
             showArchived={showArchived}
             onToggleArchived={() => setShowArchived((currentValue) => !currentValue)}
             onEdit={handleEdit}
+            onDuplicate={(product) => void duplicateProduct(product)}
             onArchive={(productId) => void updateProductStatus(productId, "archiviato")}
             onPause={(productId) => void updateProductStatus(productId, "in_pausa")}
             onReactivate={(productId) => void updateProductStatus(productId, "pubblicato")}
@@ -320,6 +425,7 @@ export function ProductsModule() {
           form={form}
           formError={formError}
           isEditing={Boolean(editingProductId)}
+          relatedProducts={relatedProducts}
           onChange={setForm}
           onContinue={handleContinue}
           onCancelEdit={resetForm}

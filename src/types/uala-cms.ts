@@ -29,6 +29,15 @@ export interface ProductImageRow {
   product_id: string;
   image_url: string;
   position: number;
+  alt_text: string | null;
+  created_at?: string;
+}
+
+export interface ProductRelatedRow {
+  id: string;
+  tenant_id?: string;
+  product_id: string;
+  related_product_id: string;
   created_at?: string;
 }
 
@@ -36,6 +45,7 @@ export interface ProductImageDraft {
   id?: string;
   image_url: string;
   position: number;
+  alt_text: string;
 }
 
 export interface ProductRow {
@@ -56,6 +66,9 @@ export interface ProductRow {
   badge: string | null;
   promo_scade_il: string | null;
   publish_at: string | null;
+  mostra_countdown: boolean;
+  quantita_disponibile: number | null;
+  in_evidenza: boolean;
   created_at?: string;
 }
 
@@ -63,12 +76,16 @@ export interface ProductFormValues {
   name: string;
   category: string;
   badge: string;
+  in_evidenza: boolean;
   price: string;
   discount_price: string;
   promo_scade_il: string;
+  mostra_countdown: boolean;
+  quantita_disponibile: string;
   short_description: string;
   long_description: string;
   images: ProductImageDraft[];
+  related_product_ids: string[];
   slug: string;
   seo_title: string;
   seo_description: string;
