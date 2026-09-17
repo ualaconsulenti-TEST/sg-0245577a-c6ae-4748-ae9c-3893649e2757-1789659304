@@ -76,6 +76,14 @@ export function useTenantSession(): TenantSessionState {
       const currentUserIsSuperAdmin = superAdminRecord?.user_id === currentUser.id;
       setIsSuperAdmin(currentUserIsSuperAdmin);
 
+      if (currentUserIsSuperAdmin) {
+        setTenant(null);
+        setEnabledModules([]);
+        setStatus("ready");
+        setError(null);
+        return;
+      }
+
       const { data: tenantUserData, error: tenantUserError } = await cmsSupabase
         .from("tenant_users")
         .select("tenant_id")
