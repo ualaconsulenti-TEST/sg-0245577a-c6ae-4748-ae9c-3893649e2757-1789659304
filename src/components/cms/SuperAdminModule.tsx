@@ -137,7 +137,7 @@ export function SuperAdminModule() {
     try {
       const { error: updateError } = await cmsSupabase.rpc("admin_update_tenant_modules", {
         target_tenant_id: tenantId,
-        new_enabled_modules: nextModules,
+        modules: nextModules,
       });
 
       if (updateError) {
@@ -172,7 +172,7 @@ export function SuperAdminModule() {
     try {
       const { error: createError } = await cmsSupabase.rpc("admin_create_tenant", {
         tenant_name: newTenantName.trim(),
-        initial_modules: newTenantModules,
+        modules: newTenantModules,
       });
 
       if (createError) {
