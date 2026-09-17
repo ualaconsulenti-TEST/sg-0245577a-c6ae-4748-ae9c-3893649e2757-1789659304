@@ -1,12 +1,11 @@
-import React from 'react'
+import { SEO } from "@/components/SEO";
+import { UalaCmsApp } from "@/components/cms/UalaCmsApp";
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-background flex items-center justify-center">
-      <div className="text-center space-y-4">
-        <h1 className="text-4xl font-bold text-foreground">Hello World</h1>
-        <p className="text-lg text-muted-foreground">This is going to be your softgen app, start by describing your project.</p>
-      </div>
-    </main>
-  )
+    <>
+      <SEO title="UALA CMS | Pannello amministrazione multi-tenant" description="Pannello UALA CMS con login Supabase, tenant context e moduli abilitati." />
+      <UalaCmsApp />
+    </>
+  );
 }
