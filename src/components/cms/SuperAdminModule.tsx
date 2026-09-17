@@ -39,6 +39,12 @@ interface TenantUserRecord {
   role?: string | null;
 }
 
+interface InviteTenantUserResponse {
+  success?: boolean;
+  error?: string;
+  message?: string;
+}
+
 function normalizeModules(value: unknown): string[] {
   if (!Array.isArray(value)) {
     return [];
@@ -129,7 +135,20 @@ export function SuperAdminModule() {
     void loadSuperAdminData();
   }, [loadSuperAdminData]);
 
-  async function updateTenantModules(tenantId: string, nextModules: string[]): Promise<void> {
+  async function updateTenantModules(
+    tenantId: string,
+    tenantName: string,
+    moduleLabel: string,
+    isActivating: boolean,
+    nextModules: string[],
+  ): Promise<void> {
+    const actionLabel = isActivating ? "attivando" : "disattivando";
+    const confirmed = window.confirm(`Stai ${actionLabel} il modulo ${moduleLabel} per il cliente ${tenantName}. Confermi?`);
+
+    if (!confirmed) {
+      return;
+    }
+
     setActionTenantId(tenantId);
     setFeedback(null);
     setError(null);
@@ -194,33 +213,50 @@ export function SuperAdminModule() {
   async function assignUserToTenant(event: FormEvent<HTMLFormElement>, tenantId: string): Promise<void> {
     event.preventDefault();
     const form = tenantUserForms[tenantId] || { email: "", role: "admin" };
+    const email = form.email.trim();
+    const role = form.role.trim() || "admin";
 
     setActionTenantId(tenantId);
     setFeedback(null);
     setError(null);
 
     try {
-      const { error: assignError } = await cmsSupabase.rpc("admin_assign_user_to_tenant", {
-        user_email: form.email.trim(),
-        target_tenant_id: tenantId,
-        user_role: form.role.trim() || "admin",
+      const { data: sessionData, error: sessionError } = await cmsSupabase.auth.getSession();
+
+      if (sessionError) {
+        throw sessionError;
+      }
+
+      const accessToken = sessionData.session?.access_token;
+
+      if (!accessToken) {
+        throw new Error("Sessione utente non disponibile.");
+      }
+
+      const { data, error: inviteError } = await cmsSupabase.functions.invoke("invite-tenant-user", {
+        body: {
+          email,
+          tenant_id: tenantId,
+          role,
+        },
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
       });
 
-      if (assignError) {
-        throw assignError;
+      if (inviteError) {
+        throw inviteError;
+      }
+
+      const inviteResponse = data as InviteTenantUserResponse | null;
+
+      if (!inviteResponse?.success) {
+        throw new Error(inviteResponse?.error || inviteResponse?.message || "Invito non riuscito.");
       }
 
       setTenantUserForms((currentForms) => ({
         ...currentForms,
-        [tenantId]: { email: "", role: form.role || "admin" },
-      }));
-      setTenantUsers((currentUsers) => ({
-        ...currentUsers,
-        [tenantId]: [],
-      }));
-      setTenantUsers((currentUsers) => ({
-        ...currentUsers,
-        [tenantId]: currentUsers[tenantId],
+        [tenantId]: { email: "", role },
       }));
 
       const updatedUsers = await loadTenantUsers(tenantId);
@@ -228,7 +264,7 @@ export function SuperAdminModule() {
         ...currentUsers,
         [tenantId]: updatedUsers,
       }));
-      setFeedback("Utente collegato al cliente.");
+      setFeedback(`Invito inviato a ${email}. Riceverà un'email per impostare la password.`);
     } catch (assignError) {
       setError(toMessage(assignError));
     } finally {
@@ -327,7 +363,9 @@ export function SuperAdminModule() {
                         <Checkbox
                           checked={isChecked}
                           disabled={actionTenantId === tenant.id}
-                          onCheckedChange={() => void updateTenantModules(tenant.id, nextModules)}
+                          onCheckedChange={() =>
+                            void updateTenantModules(tenant.id, tenant.name, moduleItem.label, !isChecked, nextModules)
+                          }
                         />
                       </label>
                     );
@@ -397,7 +435,7 @@ export function SuperAdminModule() {
                     </div>
                     <div className="flex items-end">
                       <Button type="submit" className="w-full bg-primary hover:bg-primary/90" disabled={actionTenantId === tenant.id}>
-                        Aggiungi
+                        Invita cliente
                       </Button>
                     </div>
                   </form>
