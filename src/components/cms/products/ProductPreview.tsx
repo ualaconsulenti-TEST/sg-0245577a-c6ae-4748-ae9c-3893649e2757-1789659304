@@ -16,6 +16,17 @@ interface ProductPreviewProps {
   onSchedule?: (publishAt: string) => void;
 }
 
+type PreviewMediaItem =
+  | {
+      type: "image";
+      imageUrl: string;
+      altText: string;
+    }
+  | {
+      type: "video";
+      embedUrl: string;
+    };
+
 function FormattedDescription({ value }: { value: string }) {
   const parts = value.split(/(\*\*[^*]+\*\*|_[^_]+_)/g).filter(Boolean);
 
@@ -83,18 +94,27 @@ export function ProductPreview({ form, isSaving = false, mode = "edit", onBack, 
   const [scheduledAt, setScheduledAt] = useState("");
   const [scheduleError, setScheduleError] = useState<string | null>(null);
   const [remainingMs, setRemainingMs] = useState<number | null>(null);
-  const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [activeMediaIndex, setActiveMediaIndex] = useState(0);
   const sortedImages = useMemo(() => form.images.slice().sort((first, second) => first.position - second.position), [form.images]);
-  const activeImage = sortedImages[activeImageIndex] || sortedImages[0];
+  const embedUrl = videoEmbedUrl(form.video_url);
+  const mediaItems = useMemo<PreviewMediaItem[]>(() => {
+    const imageItems = sortedImages.map((image) => ({
+      type: "image" as const,
+      imageUrl: image.image_url,
+      altText: image.alt_text || form.name || "Anteprima prodotto",
+    }));
+
+    return embedUrl ? [...imageItems, { type: "video" as const, embedUrl }] : imageItems;
+  }, [embedUrl, form.name, sortedImages]);
+  const activeMedia = mediaItems[activeMediaIndex] || mediaItems[0];
   const vatLabel = form.iva_inclusa ? "IVA inclusa" : "+ IVA";
   const availableQuantity = form.quantita_disponibile.trim();
-  const embedUrl = videoEmbedUrl(form.video_url);
 
   useEffect(() => {
-    if (activeImageIndex >= sortedImages.length) {
-      setActiveImageIndex(0);
+    if (activeMediaIndex >= mediaItems.length) {
+      setActiveMediaIndex(0);
     }
-  }, [activeImageIndex, sortedImages.length]);
+  }, [activeMediaIndex, mediaItems.length]);
 
   useEffect(() => {
     if (!form.mostra_countdown || !form.promo_scade_il) {
@@ -135,12 +155,12 @@ export function ProductPreview({ form, isSaving = false, mode = "edit", onBack, 
     onSchedule(scheduledAt);
   }
 
-  function showPreviousImage(): void {
-    setActiveImageIndex((currentIndex) => (currentIndex === 0 ? sortedImages.length - 1 : currentIndex - 1));
+  function showPreviousMedia(): void {
+    setActiveMediaIndex((currentIndex) => (currentIndex === 0 ? mediaItems.length - 1 : currentIndex - 1));
   }
 
-  function showNextImage(): void {
-    setActiveImageIndex((currentIndex) => (currentIndex + 1 >= sortedImages.length ? 0 : currentIndex + 1));
+  function showNextMedia(): void {
+    setActiveMediaIndex((currentIndex) => (currentIndex + 1 >= mediaItems.length ? 0 : currentIndex + 1));
   }
 
   return (
@@ -156,25 +176,36 @@ export function ProductPreview({ form, isSaving = false, mode = "edit", onBack, 
         ) : null}
 
         <article className="overflow-hidden rounded-3xl border border-fuchsia-100 bg-white">
-          {activeImage ? (
-            <div className="relative">
-              <img src={activeImage.image_url} alt={activeImage.alt_text || form.name || "Anteprima prodotto"} className="h-72 w-full object-cover" />
-              {sortedImages.length > 1 ? (
+          {activeMedia ? (
+            <div className="relative bg-slate-950">
+              {activeMedia.type === "image" ? (
+                <img src={activeMedia.imageUrl} alt={activeMedia.altText} className="h-72 w-full object-cover" />
+              ) : (
+                <iframe
+                  title="Video prodotto"
+                  src={activeMedia.embedUrl}
+                  className="aspect-video w-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                />
+              )}
+
+              {mediaItems.length > 1 ? (
                 <>
-                  <Button type="button" variant="outline" size="sm" className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/90" onClick={showPreviousImage}>
+                  <Button type="button" variant="outline" size="sm" className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/90" onClick={showPreviousMedia}>
                     ‹
                   </Button>
-                  <Button type="button" variant="outline" size="sm" className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/90" onClick={showNextImage}>
+                  <Button type="button" variant="outline" size="sm" className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/90" onClick={showNextMedia}>
                     ›
                   </Button>
                   <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-2">
-                    {sortedImages.map((image, index) => (
+                    {mediaItems.map((media, index) => (
                       <button
-                        key={`${image.image_url}-${index}`}
+                        key={media.type === "image" ? `${media.imageUrl}-${index}` : `${media.embedUrl}-${index}`}
                         type="button"
-                        aria-label={`Mostra foto ${index + 1}`}
-                        className={`h-2.5 w-2.5 rounded-full ${index === activeImageIndex ? "bg-primary" : "bg-white/80"}`}
-                        onClick={() => setActiveImageIndex(index)}
+                        aria-label={media.type === "image" ? `Mostra foto ${index + 1}` : "Mostra video prodotto"}
+                        className={`h-2.5 w-2.5 rounded-full ${index === activeMediaIndex ? "bg-primary" : "bg-white/80"}`}
+                        onClick={() => setActiveMediaIndex(index)}
                       />
                     ))}
                   </div>
@@ -184,18 +215,6 @@ export function ProductPreview({ form, isSaving = false, mode = "edit", onBack, 
           ) : (
             <div className="flex h-72 items-center justify-center bg-fuchsia-50 text-sm text-slate-500">Nessuna foto caricata</div>
           )}
-
-          {embedUrl ? (
-            <div className="border-t border-fuchsia-100 bg-slate-950">
-              <iframe
-                title="Video prodotto"
-                src={embedUrl}
-                className="aspect-video w-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-              />
-            </div>
-          ) : null}
 
           <div className="space-y-5 p-6">
             <div className="flex flex-wrap items-start justify-between gap-3">
