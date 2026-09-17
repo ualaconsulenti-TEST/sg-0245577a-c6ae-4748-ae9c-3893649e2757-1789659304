@@ -2,6 +2,8 @@ import type { User } from "@supabase/supabase-js";
 
 export type TenantSessionStatus = "loading" | "unauthenticated" | "ready" | "error";
 
+export type TenantStatus = "attivo" | "sospeso";
+
 export type DeliveryType = "digitale" | "fisico";
 
 export type ProductStatus = "bozza" | "pubblicato" | "in_pausa" | "archiviato";
@@ -10,6 +12,7 @@ export interface TenantRecord {
   id: string;
   name: string;
   enabled_modules: string[];
+  status: TenantStatus;
 }
 
 export interface TenantSessionState {

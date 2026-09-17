@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import type { TenantRecord, TenantSessionState, TenantSessionStatus } from "@/types/uala-cms";
@@ -13,6 +13,7 @@ interface TenantQueryRecord {
   id?: string | null;
   name?: string | null;
   enabled_modules?: unknown;
+  status?: string | null;
 }
 
 interface SuperAdminRecord {
@@ -45,9 +46,11 @@ export function useTenantSession(): TenantSessionState {
   const [enabledModules, setEnabledModules] = useState<string[]>([]);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const touchedLastLoginRef = useRef<Set<string>>(new Set());
 
   const loadTenantContext = useCallback(async (currentUser: User | null): Promise<void> => {
     if (!currentUser) {
+      touchedLastLoginRef.current.clear();
       setStatus("unauthenticated");
       setUser(null);
       setTenant(null);
@@ -106,7 +109,7 @@ export function useTenantSession(): TenantSessionState {
 
       const { data: tenantData, error: tenantError } = await cmsSupabase
         .from("tenants")
-        .select("id, name, enabled_modules")
+        .select("id, name, enabled_modules, status")
         .eq("id", tenantUser.tenant_id)
         .maybeSingle();
 
@@ -124,17 +127,35 @@ export function useTenantSession(): TenantSessionState {
         return;
       }
 
+      if (tenantRecord.status === "sospeso") {
+        setStatus("error");
+        setTenant(null);
+        setEnabledModules([]);
+        setError("Il tuo account è temporaneamente sospeso. Contatta UALÀ per riattivarlo.");
+        return;
+      }
+
       const modules = normalizeModules(tenantRecord.enabled_modules);
       const normalizedTenant: TenantRecord = {
         id: tenantRecord.id,
         name: tenantRecord.name || "Tenant senza nome",
         enabled_modules: modules,
+        status: "attivo",
       };
 
       setTenant(normalizedTenant);
       setEnabledModules(modules);
       setStatus("ready");
       setError(null);
+
+      const touchKey = `${currentUser.id}:${tenantRecord.id}`;
+
+      if (!touchedLastLoginRef.current.has(touchKey)) {
+        touchedLastLoginRef.current.add(touchKey);
+        await cmsSupabase.rpc("touch_my_last_login", {
+          target_tenant_id: tenantRecord.id,
+        });
+      }
     } catch (contextError) {
       setStatus("error");
       setTenant(null);
@@ -181,6 +202,7 @@ export function useTenantSession(): TenantSessionState {
 
   const signOut = useCallback(async (): Promise<void> => {
     await cmsSupabase.auth.signOut();
+    touchedLastLoginRef.current.clear();
     setStatus("unauthenticated");
     setUser(null);
     setTenant(null);
