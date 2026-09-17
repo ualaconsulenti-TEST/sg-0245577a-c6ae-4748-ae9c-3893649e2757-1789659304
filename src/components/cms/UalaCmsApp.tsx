@@ -20,7 +20,7 @@ interface LoadingScreenProps {
 }
 
 interface AdminShellProps {
-  tenant: TenantRecord;
+  tenant: TenantRecord | null;
   enabledModules: string[];
   isSuperAdmin?: boolean;
   activeModule?: string;
@@ -176,6 +176,7 @@ function TenantErrorScreen({
 
 export function AdminShell({ tenant, enabledModules, isSuperAdmin = false, activeModule, onLogout, children }: AdminShellProps) {
   const canUseProducts = enabledModules.includes("prodotti");
+  const tenantLabel = tenant ? `Cliente: ${tenant.name}` : "Pannello Super Admin";
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-950">
@@ -185,9 +186,7 @@ export function AdminShell({ tenant, enabledModules, isSuperAdmin = false, activ
             <Image src="/uala-logo.jpg" alt="UALA Logo" width={40} height={40} className="rounded-lg" />
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.3em] text-primary">UALÀ CMS</p>
-              <p className="mt-1 text-sm text-slate-600">
-                Cliente: <span className="font-semibold text-slate-950">{tenant.name}</span>
-              </p>
+              <p className="mt-1 text-sm font-semibold text-slate-950">{tenantLabel}</p>
             </div>
           </div>
           <Button type="button" variant="outline" className="border-fuchsia-200 hover:bg-fuchsia-50" onClick={() => void onLogout()}>
@@ -211,6 +210,10 @@ export function AdminShell({ tenant, enabledModules, isSuperAdmin = false, activ
               >
                 Prodotti
               </Link>
+            ) : isSuperAdmin && !tenant ? (
+              <p className="rounded-2xl bg-slate-100 px-4 py-3 text-sm leading-6 text-slate-600">
+                Area agenzia riservata.
+              </p>
             ) : (
               <p className="rounded-2xl bg-slate-100 px-4 py-3 text-sm leading-6 text-slate-600">
                 Nessun modulo disponibile per questo cliente.
@@ -290,7 +293,7 @@ export function UalaCmsApp() {
     return <LoginScreen />;
   }
 
-  if (session.status === "error" || !session.tenant) {
+  if (session.status === "error" || (!session.tenant && !session.isSuperAdmin)) {
     return <TenantErrorScreen error={session.error} onLogout={session.signOut} />;
   }
 

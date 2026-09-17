@@ -29,7 +29,7 @@ export default function SuperAdminPage() {
     );
   }
 
-  if (session.status === "error" || !session.tenant) {
+  if (session.status === "error" || (!session.tenant && !session.isSuperAdmin)) {
     return (
       <>
         <SEO title="Super Admin | UALA CMS" description="Area Super Admin UALA CMS" />
