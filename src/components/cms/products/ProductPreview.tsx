@@ -109,6 +109,7 @@ export function ProductPreview({ form, isSaving = false, mode = "edit", onBack, 
   const activeMedia = mediaItems[activeMediaIndex] || mediaItems[0];
   const vatLabel = form.iva_inclusa ? "IVA inclusa" : "+ IVA";
   const availableQuantity = form.quantita_disponibile.trim();
+  const deliveryTime = form.tempo_consegna.trim();
 
   useEffect(() => {
     if (activeMediaIndex >= mediaItems.length) {
@@ -255,6 +256,7 @@ export function ProductPreview({ form, isSaving = false, mode = "edit", onBack, 
 
             <div className="rounded-2xl bg-fuchsia-50 px-4 py-3 text-sm text-slate-700">
               {form.delivery_type === "digitale" ? "Consegna digitale" : form.sold_out ? "Prodotto esaurito" : `Disponibilità fisica${form.stock ? `: ${form.stock} pezzi` : ""}`}
+              {deliveryTime ? ` — ${deliveryTime}` : ""}
             </div>
           </div>
         </article>
