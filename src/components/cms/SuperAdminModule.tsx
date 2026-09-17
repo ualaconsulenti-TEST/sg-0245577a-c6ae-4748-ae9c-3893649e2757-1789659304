@@ -238,6 +238,7 @@ export function SuperAdminModule() {
           email,
           tenant_id: tenantId,
           role,
+          redirect_to: `${window.location.origin}/imposta-password`,
         },
         headers: {
           Authorization: `Bearer ${accessToken}`,
