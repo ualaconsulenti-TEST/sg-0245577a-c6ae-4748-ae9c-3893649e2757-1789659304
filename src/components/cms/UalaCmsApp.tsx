@@ -71,8 +71,8 @@ function LoginScreen() {
         <div className="grid w-full gap-8 lg:grid-cols-[1fr_440px] lg:items-center">
           <section className="space-y-6">
             <div>
-              <div className="mb-5 flex items-center gap-3">
-                <Image src="/uala-logo.jpg" alt="UALA Logo" width={48} height={48} className="rounded-xl" />
+              <div className="mb-5 space-y-3">
+                <Image src="/uala-logo.jpg" alt="UALA Logo" width={144} height={144} className="rounded-xl" />
                 <p className="text-sm font-semibold uppercase tracking-[0.3em] text-fuchsia-700">UALA CMS</p>
               </div>
               <h1 className="mt-5 max-w-2xl text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
