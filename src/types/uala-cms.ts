@@ -17,6 +17,7 @@ export interface TenantSessionState {
   user: User | null;
   tenant: TenantRecord | null;
   enabledModules: string[];
+  isSuperAdmin: boolean;
   error: string | null;
   reload: () => Promise<void>;
   signOut: () => Promise<void>;

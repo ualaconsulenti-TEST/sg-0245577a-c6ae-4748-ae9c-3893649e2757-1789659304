@@ -15,6 +15,10 @@ interface TenantQueryRecord {
   enabled_modules?: unknown;
 }
 
+interface SuperAdminRecord {
+  user_id?: string | null;
+}
+
 function normalizeModules(value: unknown): string[] {
   if (!Array.isArray(value)) {
     return [];
@@ -39,6 +43,7 @@ export function useTenantSession(): TenantSessionState {
   const [user, setUser] = useState<User | null>(null);
   const [tenant, setTenant] = useState<TenantRecord | null>(null);
   const [enabledModules, setEnabledModules] = useState<string[]>([]);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const loadTenantContext = useCallback(async (currentUser: User | null): Promise<void> => {
@@ -47,6 +52,7 @@ export function useTenantSession(): TenantSessionState {
       setUser(null);
       setTenant(null);
       setEnabledModules([]);
+      setIsSuperAdmin(false);
       setError(null);
       return;
     }
@@ -55,6 +61,20 @@ export function useTenantSession(): TenantSessionState {
       setStatus("loading");
       setUser(currentUser);
       setError(null);
+
+      const { data: superAdminData, error: superAdminError } = await cmsSupabase
+        .from("super_admins")
+        .select("user_id")
+        .eq("user_id", currentUser.id)
+        .maybeSingle();
+
+      if (superAdminError) {
+        throw superAdminError;
+      }
+
+      const superAdminRecord = superAdminData as SuperAdminRecord | null;
+      const currentUserIsSuperAdmin = superAdminRecord?.user_id === currentUser.id;
+      setIsSuperAdmin(currentUserIsSuperAdmin);
 
       const { data: tenantUserData, error: tenantUserError } = await cmsSupabase
         .from("tenant_users")
@@ -111,6 +131,7 @@ export function useTenantSession(): TenantSessionState {
       setStatus("error");
       setTenant(null);
       setEnabledModules([]);
+      setIsSuperAdmin(false);
       setError(toErrorMessage(contextError));
     }
   }, []);
@@ -130,6 +151,7 @@ export function useTenantSession(): TenantSessionState {
         setUser(null);
         setTenant(null);
         setEnabledModules([]);
+        setIsSuperAdmin(false);
         setError(null);
         return;
       }
@@ -155,6 +177,7 @@ export function useTenantSession(): TenantSessionState {
     setUser(null);
     setTenant(null);
     setEnabledModules([]);
+    setIsSuperAdmin(false);
     setError(null);
   }, []);
 
@@ -173,11 +196,12 @@ export function useTenantSession(): TenantSessionState {
       user,
       tenant,
       enabledModules,
+      isSuperAdmin,
       error,
       reload,
       signOut,
       hasModule,
     }),
-    [status, user, tenant, enabledModules, error, reload, signOut, hasModule],
+    [status, user, tenant, enabledModules, isSuperAdmin, error, reload, signOut, hasModule],
   );
 }

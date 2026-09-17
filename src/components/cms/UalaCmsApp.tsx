@@ -22,6 +22,7 @@ interface LoadingScreenProps {
 interface AdminShellProps {
   tenant: TenantRecord;
   enabledModules: string[];
+  isSuperAdmin?: boolean;
   activeModule?: string;
   onLogout: () => Promise<void>;
   children: ReactNode;
@@ -173,7 +174,7 @@ function TenantErrorScreen({
   );
 }
 
-export function AdminShell({ tenant, enabledModules, activeModule, onLogout, children }: AdminShellProps) {
+export function AdminShell({ tenant, enabledModules, isSuperAdmin = false, activeModule, onLogout, children }: AdminShellProps) {
   const canUseProducts = enabledModules.includes("prodotti");
 
   return (
@@ -215,6 +216,19 @@ export function AdminShell({ tenant, enabledModules, activeModule, onLogout, chi
                 Nessun modulo disponibile per questo cliente.
               </p>
             )}
+
+            {isSuperAdmin ? (
+              <Link
+                href="/super-admin"
+                className={`block rounded-2xl px-4 py-3 text-sm font-semibold transition ${
+                  activeModule === "super-admin"
+                    ? "bg-slate-900 text-white shadow-sm"
+                    : "text-slate-700 hover:bg-slate-100 hover:text-slate-950"
+                }`}
+              >
+                Super Admin
+              </Link>
+            ) : null}
           </nav>
           <Separator className="my-4" />
           <p className="px-3 text-xs leading-5 text-slate-500">I moduli visibili dipendono dal pacchetto attivato per il tuo account. Per attivarne di nuovi contatta UALÀ.</p>
@@ -281,7 +295,7 @@ export function UalaCmsApp() {
   }
 
   return (
-    <AdminShell tenant={session.tenant} enabledModules={session.enabledModules} onLogout={session.signOut}>
+    <AdminShell tenant={session.tenant} enabledModules={session.enabledModules} isSuperAdmin={session.isSuperAdmin} onLogout={session.signOut}>
       <DashboardHome enabledModules={session.enabledModules} />
     </AdminShell>
   );
