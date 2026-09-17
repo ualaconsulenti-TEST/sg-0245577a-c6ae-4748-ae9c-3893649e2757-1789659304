@@ -31,7 +31,7 @@ interface DashboardHomeProps {
   enabledModules: string[];
 }
 
-export function UalaLoadingScreen({ label = "Caricamento UALA CMS..." }: LoadingScreenProps) {
+export function UalaLoadingScreen({ label = "Caricamento UALÀ CMS..." }: LoadingScreenProps) {
   return (
     <main className="flex min-h-screen items-center justify-center bg-slate-50 px-6 text-slate-900">
       <div className="w-full max-w-sm rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
@@ -67,19 +67,20 @@ function LoginScreen() {
 
   return (
     <main className="min-h-screen bg-slate-50 px-6 py-10 text-slate-950">
-      <div className="mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-6xl items-center justify-center">
+      <div className="mx-auto w-full max-w-6xl">
+        <div className="mb-10 text-center">
+          <Image src="/uala-logo.jpg" alt="UALA Logo" width={288} height={288} className="mx-auto rounded-xl" />
+          <p className="mt-4 text-sm font-semibold uppercase tracking-[0.3em] text-fuchsia-700">UALÀ CMS</p>
+        </div>
+
         <div className="grid w-full gap-8 lg:grid-cols-[1fr_440px] lg:items-center">
           <section className="space-y-6">
             <div>
-              <div className="mb-5 space-y-3">
-                <Image src="/uala-logo.jpg" alt="UALA Logo" width={144} height={144} className="rounded-xl" />
-                <p className="text-sm font-semibold uppercase tracking-[0.3em] text-fuchsia-700">UALA CMS</p>
-              </div>
-              <h1 className="mt-5 max-w-2xl text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+              <h1 className="max-w-2xl text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
                 Il pannello operativo per gestire ogni tenant con chiarezza.
               </h1>
               <p className="mt-5 max-w-xl text-base leading-7 text-slate-600">
-                Accedi con il tuo account. UALA CMS carica automaticamente il tenant associato e mostra solo i moduli abilitati.
+                Accedi con le tue credenziali per gestire i contenuti del tuo sito.
               </p>
             </div>
             <div className="grid max-w-2xl gap-3 sm:grid-cols-3">
@@ -179,7 +180,7 @@ export function AdminShell({ tenant, enabledModules, activeModule, onLogout, chi
           <div className="flex items-center gap-3">
             <Image src="/uala-logo.jpg" alt="UALA Logo" width={40} height={40} className="rounded-lg" />
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-fuchsia-700">UALA CMS</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-fuchsia-700">UALÀ CMS</p>
               <p className="mt-1 text-sm text-slate-600">
                 Tenant: <span className="font-semibold text-slate-950">{tenant.name}</span>
               </p>
