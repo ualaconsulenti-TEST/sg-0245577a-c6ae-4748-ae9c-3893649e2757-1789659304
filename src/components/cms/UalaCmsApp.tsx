@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import type { FormEvent, ReactNode } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -70,7 +71,10 @@ function LoginScreen() {
         <div className="grid w-full gap-8 lg:grid-cols-[1fr_440px] lg:items-center">
           <section className="space-y-6">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.3em] text-fuchsia-700">UALA CMS</p>
+              <div className="mb-5 flex items-center gap-3">
+                <Image src="/uala-logo.jpg" alt="UALA Logo" width={48} height={48} className="rounded-xl" />
+                <p className="text-sm font-semibold uppercase tracking-[0.3em] text-fuchsia-700">UALA CMS</p>
+              </div>
               <h1 className="mt-5 max-w-2xl text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
                 Il pannello operativo per gestire ogni tenant con chiarezza.
               </h1>
@@ -79,7 +83,7 @@ function LoginScreen() {
               </p>
             </div>
             <div className="grid max-w-2xl gap-3 sm:grid-cols-3">
-              {["Multi-tenant", "Moduli su permesso", "Supabase Auth"].map((item) => (
+              {["Multi-tenant", "Moduli su permesso", "Accesso sicuro"].map((item) => (
                 <div key={item} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 shadow-sm">
                   {item}
                 </div>
@@ -90,7 +94,7 @@ function LoginScreen() {
           <Card className="border-slate-200 shadow-sm">
             <CardHeader>
               <CardTitle className="text-2xl text-slate-950">Accesso amministratore</CardTitle>
-              <CardDescription>Inserisci email e password configurate in Supabase Auth.</CardDescription>
+              <CardDescription>Inserisci le tue credenziali per accedere.</CardDescription>
             </CardHeader>
             <CardContent>
               <form className="space-y-5" onSubmit={handleSubmit}>
@@ -154,7 +158,7 @@ function TenantErrorScreen({
         </CardHeader>
         <CardContent className="space-y-5">
           <Alert variant="destructive">
-            <AlertDescription>{error || "Verifica l'associazione utente-tenant in Supabase."}</AlertDescription>
+            <AlertDescription>{error || "Verifica l'associazione utente-tenant nel database."}</AlertDescription>
           </Alert>
           <Button type="button" variant="outline" onClick={() => void onLogout()}>
             Logout
@@ -172,11 +176,14 @@ export function AdminShell({ tenant, enabledModules, activeModule, onLogout, chi
     <main className="min-h-screen bg-slate-50 text-slate-950">
       <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-fuchsia-700">UALA CMS</p>
-            <p className="mt-1 text-sm text-slate-600">
-              Tenant: <span className="font-semibold text-slate-950">{tenant.name}</span>
-            </p>
+          <div className="flex items-center gap-3">
+            <Image src="/uala-logo.jpg" alt="UALA Logo" width={40} height={40} className="rounded-lg" />
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-fuchsia-700">UALA CMS</p>
+              <p className="mt-1 text-sm text-slate-600">
+                Tenant: <span className="font-semibold text-slate-950">{tenant.name}</span>
+              </p>
+            </div>
           </div>
           <Button type="button" variant="outline" onClick={() => void onLogout()}>
             Logout
