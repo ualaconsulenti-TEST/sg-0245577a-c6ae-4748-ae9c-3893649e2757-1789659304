@@ -66,33 +66,32 @@ function LoginScreen() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 px-6 py-10 text-slate-950">
-      <div className="mx-auto w-full max-w-6xl">
-        <div className="mb-10 text-center">
+    <main className="flex min-h-screen flex-col bg-slate-50 px-6 py-10 text-slate-950">
+      <div className="mx-auto w-full max-w-2xl flex-1">
+        <div className="mb-12 text-center">
           <Image src="/uala-logo.jpg" alt="UALA Logo" width={288} height={288} className="mx-auto rounded-xl" />
           <p className="mt-4 text-sm font-semibold uppercase tracking-[0.3em] text-fuchsia-700">UALÀ CMS</p>
         </div>
 
-        <div className="grid w-full gap-8 lg:grid-cols-[1fr_440px] lg:items-center">
-          <section className="space-y-6">
-            <div>
-              <h1 className="max-w-2xl text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
-                Il pannello operativo per gestire ogni tenant con chiarezza.
-              </h1>
-              <p className="mt-5 max-w-xl text-base leading-7 text-slate-600">
-                Accedi con le tue credenziali per gestire i contenuti del tuo sito.
-              </p>
-            </div>
-            <div className="grid max-w-2xl gap-3 sm:grid-cols-3">
-              {["Multi-tenant", "Moduli su permesso", "Accesso sicuro"].map((item) => (
-                <div key={item} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 shadow-sm">
-                  {item}
-                </div>
-              ))}
-            </div>
-          </section>
+        <div className="mx-auto max-w-xl space-y-8">
+          <div className="text-center">
+            <h1 className="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+              Il pannello operativo per gestire ogni cliente con chiarezza.
+            </h1>
+            <p className="mt-5 text-base leading-7 text-slate-600">
+              Accedi con le tue credenziali per gestire i contenuti del tuo sito.
+            </p>
+          </div>
 
-          <Card className="border-slate-200 shadow-sm">
+          <div className="grid gap-3 sm:grid-cols-3">
+            {["Un pannello per ogni cliente", "Moduli su permesso", "Accesso sicuro"].map((item) => (
+              <div key={item} className="rounded-2xl border border-fuchsia-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 shadow-sm">
+                {item}
+              </div>
+            ))}
+          </div>
+
+          <Card className="border-fuchsia-200 shadow-sm">
             <CardHeader>
               <CardTitle className="text-2xl text-slate-950">Accesso amministratore</CardTitle>
               <CardDescription>Inserisci le tue credenziali per accedere.</CardDescription>
@@ -139,6 +138,10 @@ function LoginScreen() {
           </Card>
         </div>
       </div>
+
+      <footer className="mt-8 text-center">
+        <p className="text-sm text-slate-600">Per assistenza contatta UALÀ — 376 185 7437</p>
+      </footer>
     </main>
   );
 }
@@ -152,14 +155,14 @@ function TenantErrorScreen({
 }) {
   return (
     <main className="flex min-h-screen items-center justify-center bg-slate-50 px-6">
-      <Card className="w-full max-w-lg border-slate-200 shadow-sm">
+      <Card className="w-full max-w-lg border-fuchsia-200 shadow-sm">
         <CardHeader>
-          <CardTitle>Tenant non disponibile</CardTitle>
-          <CardDescription>Non è possibile completare il caricamento del contesto multi-tenant.</CardDescription>
+          <CardTitle>Cliente non disponibile</CardTitle>
+          <CardDescription>Non è possibile completare il caricamento del contesto multi-cliente.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
           <Alert variant="destructive">
-            <AlertDescription>{error || "Verifica l'associazione utente-tenant nel database."}</AlertDescription>
+            <AlertDescription>{error || "Verifica l'associazione utente-cliente nel database."}</AlertDescription>
           </Alert>
           <Button type="button" variant="outline" onClick={() => void onLogout()}>
             Logout
@@ -175,25 +178,25 @@ export function AdminShell({ tenant, enabledModules, activeModule, onLogout, chi
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-950">
-      <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
+      <header className="sticky top-0 z-20 border-b border-fuchsia-200 bg-white/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
             <Image src="/uala-logo.jpg" alt="UALA Logo" width={40} height={40} className="rounded-lg" />
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.3em] text-fuchsia-700">UALÀ CMS</p>
               <p className="mt-1 text-sm text-slate-600">
-                Tenant: <span className="font-semibold text-slate-950">{tenant.name}</span>
+                Cliente: <span className="font-semibold text-slate-950">{tenant.name}</span>
               </p>
             </div>
           </div>
-          <Button type="button" variant="outline" onClick={() => void onLogout()}>
+          <Button type="button" variant="outline" className="border-fuchsia-200 hover:bg-fuchsia-50" onClick={() => void onLogout()}>
             Logout
           </Button>
         </div>
       </header>
 
       <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[260px_1fr] lg:px-8">
-        <aside className="h-fit rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+        <aside className="h-fit rounded-3xl border border-fuchsia-200 bg-white p-4 shadow-sm">
           <p className="px-3 text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Moduli attivi</p>
           <nav className="mt-4 space-y-2">
             {canUseProducts ? (
@@ -202,19 +205,19 @@ export function AdminShell({ tenant, enabledModules, activeModule, onLogout, chi
                 className={`block rounded-2xl px-4 py-3 text-sm font-semibold transition ${
                   activeModule === "prodotti"
                     ? "bg-fuchsia-700 text-white shadow-sm"
-                    : "text-slate-700 hover:bg-slate-100 hover:text-slate-950"
+                    : "text-slate-700 hover:bg-fuchsia-50 hover:text-slate-950"
                 }`}
               >
                 Prodotti
               </Link>
             ) : (
               <p className="rounded-2xl bg-slate-100 px-4 py-3 text-sm leading-6 text-slate-600">
-                Nessun modulo disponibile per questo tenant.
+                Nessun modulo disponibile per questo cliente.
               </p>
             )}
           </nav>
           <Separator className="my-4" />
-          <p className="px-3 text-xs leading-5 text-slate-500">Le voci compaiono solo se abilitate nel campo enabled_modules del tenant.</p>
+          <p className="px-3 text-xs leading-5 text-slate-500">Le voci compaiono solo se abilitate nel campo enabled_modules del cliente.</p>
         </aside>
 
         <section>{children}</section>
@@ -228,7 +231,7 @@ function DashboardHome({ enabledModules }: DashboardHomeProps) {
 
   return (
     <div className="space-y-6">
-      <Card className="border-slate-200 shadow-sm">
+      <Card className="border-fuchsia-200 shadow-sm">
         <CardHeader>
           <CardTitle className="text-2xl">Dashboard</CardTitle>
           <CardDescription>Seleziona un modulo abilitato per iniziare a lavorare.</CardDescription>
@@ -236,10 +239,10 @@ function DashboardHome({ enabledModules }: DashboardHomeProps) {
       </Card>
 
       {canUseProducts ? (
-        <Card className="border-slate-200 shadow-sm">
+        <Card className="border-fuchsia-200 shadow-sm">
           <CardHeader>
             <CardTitle>Prodotti</CardTitle>
-            <CardDescription>Gestisci catalogo, prezzi, stato e descrizioni dei prodotti del tenant.</CardDescription>
+            <CardDescription>Gestisci catalogo, prezzi, stato e descrizioni dei prodotti del cliente.</CardDescription>
           </CardHeader>
           <CardContent>
             <Link
@@ -251,10 +254,10 @@ function DashboardHome({ enabledModules }: DashboardHomeProps) {
           </CardContent>
         </Card>
       ) : (
-        <Card className="border-slate-200 bg-white shadow-sm">
+        <Card className="border-fuchsia-200 bg-white shadow-sm">
           <CardHeader>
             <CardTitle>Nessun modulo abilitato</CardTitle>
-            <CardDescription>Questo tenant non ha moduli disponibili. La navigazione rimane vuota per rispettare i permessi configurati.</CardDescription>
+            <CardDescription>Questo cliente non ha moduli disponibili. La navigazione rimane vuota per rispettare i permessi configurati.</CardDescription>
           </CardHeader>
         </Card>
       )}
