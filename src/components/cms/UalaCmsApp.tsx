@@ -70,7 +70,7 @@ function LoginScreen() {
       <div className="mx-auto w-full max-w-2xl flex-1">
         <div className="mb-12 text-center">
           <Image src="/uala-logo.jpg" alt="UALA Logo" width={288} height={288} className="mx-auto rounded-xl" />
-          <p className="mt-4 text-sm font-semibold uppercase tracking-[0.3em] text-fuchsia-700">UALÀ CMS</p>
+          <p className="mt-4 text-sm font-semibold uppercase tracking-[0.3em] text-primary">UALÀ CMS</p>
         </div>
 
         <div className="mx-auto max-w-xl space-y-8">
@@ -130,7 +130,7 @@ function LoginScreen() {
                   />
                 </div>
 
-                <Button type="submit" className="w-full bg-fuchsia-700 hover:bg-fuchsia-800" disabled={isSubmitting}>
+                <Button type="submit" className="w-full bg-primary hover:bg-primary/90" disabled={isSubmitting}>
                   {isSubmitting ? "Accesso in corso..." : "Entra nel CMS"}
                 </Button>
               </form>
@@ -183,7 +183,7 @@ export function AdminShell({ tenant, enabledModules, activeModule, onLogout, chi
           <div className="flex items-center gap-3">
             <Image src="/uala-logo.jpg" alt="UALA Logo" width={40} height={40} className="rounded-lg" />
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-fuchsia-700">UALÀ CMS</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-primary">UALÀ CMS</p>
               <p className="mt-1 text-sm text-slate-600">
                 Cliente: <span className="font-semibold text-slate-950">{tenant.name}</span>
               </p>
