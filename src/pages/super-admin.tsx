@@ -1,14 +1,13 @@
 import { useEffect } from "react";
 import { useRouter } from "next/router";
 import { SEO } from "@/components/SEO";
+import { SuperAdminModule } from "@/components/cms/SuperAdminModule";
 import { AdminShell, UalaLoadingScreen } from "@/components/cms/UalaCmsApp";
-import { ProductsModule } from "@/components/cms/ProductsModule";
 import { useTenantSession } from "@/hooks/use-tenant-session";
 
-export default function ProductsPage() {
+export default function SuperAdminPage() {
   const router = useRouter();
   const session = useTenantSession();
-  const canAccessProducts = session.hasModule("prodotti");
 
   useEffect(() => {
     if (session.status === "unauthenticated") {
@@ -16,16 +15,16 @@ export default function ProductsPage() {
       return;
     }
 
-    if (session.status === "ready" && !canAccessProducts) {
+    if (session.status === "ready" && !session.isSuperAdmin) {
       void router.replace("/");
     }
-  }, [canAccessProducts, router, session.status]);
+  }, [router, session.isSuperAdmin, session.status]);
 
-  if (session.status === "loading" || session.status === "unauthenticated" || (session.status === "ready" && !canAccessProducts)) {
+  if (session.status === "loading" || session.status === "unauthenticated" || (session.status === "ready" && !session.isSuperAdmin)) {
     return (
       <>
-        <SEO title="Prodotti | UALA CMS" description="Modulo prodotti UALA CMS" />
-        <UalaLoadingScreen label="Verifico i permessi del modulo..." />
+        <SEO title="Super Admin | UALA CMS" description="Area Super Admin UALA CMS" />
+        <UalaLoadingScreen label="Verifico i permessi Super Admin..." />
       </>
     );
   }
@@ -33,7 +32,7 @@ export default function ProductsPage() {
   if (session.status === "error" || !session.tenant) {
     return (
       <>
-        <SEO title="Prodotti | UALA CMS" description="Modulo prodotti UALA CMS" />
+        <SEO title="Super Admin | UALA CMS" description="Area Super Admin UALA CMS" />
         <UalaLoadingScreen label={session.error || "Tenant non disponibile."} />
       </>
     );
@@ -41,15 +40,15 @@ export default function ProductsPage() {
 
   return (
     <>
-      <SEO title="Prodotti | UALA CMS" description="Gestione prodotti del tenant in UALA CMS" />
+      <SEO title="Super Admin | UALA CMS" description="Gestione clienti, moduli e utenti UALA CMS" />
       <AdminShell
         tenant={session.tenant}
         enabledModules={session.enabledModules}
         isSuperAdmin={session.isSuperAdmin}
-        activeModule="prodotti"
+        activeModule="super-admin"
         onLogout={session.signOut}
       >
-        <ProductsModule />
+        <SuperAdminModule />
       </AdminShell>
     </>
   );
