@@ -217,7 +217,7 @@ export function AdminShell({ tenant, enabledModules, activeModule, onLogout, chi
             )}
           </nav>
           <Separator className="my-4" />
-          <p className="px-3 text-xs leading-5 text-slate-500">Le voci compaiono solo se abilitate nel campo enabled_modules del cliente.</p>
+          <p className="px-3 text-xs leading-5 text-slate-500">I moduli visibili dipendono dal pacchetto attivato per il tuo account. Per attivarne di nuovi contatta UALÀ.</p>
         </aside>
 
         <section>{children}</section>
