@@ -30,6 +30,21 @@ function StatusBadge({ status }: { status: ProductStatus }) {
   );
 }
 
+function PriceValue({ value, ivaInclusa }: { value: ProductRow["price"]; ivaInclusa: boolean }) {
+  const formattedValue = formatCurrency(value);
+
+  if (formattedValue === "—") {
+    return <span>—</span>;
+  }
+
+  return (
+    <span className="inline-flex flex-col gap-1">
+      <span>{formattedValue}</span>
+      <span className="text-xs font-medium text-slate-500">{ivaInclusa ? "IVA inclusa" : "+ IVA"}</span>
+    </span>
+  );
+}
+
 export function ProductList({
   products,
   isLoading,
@@ -61,7 +76,7 @@ export function ProductList({
             <thead className="bg-fuchsia-50 text-xs uppercase tracking-[0.16em] text-slate-600">
               <tr>
                 <th className="px-4 py-3 font-semibold">Nome</th>
-                <th className="px-4 py-3 font-semibold">Badge</th>
+                <th className="px-4 py-3 font-semibold">Etichetta promozionale</th>
                 <th className="px-4 py-3 font-semibold">Stato</th>
                 <th className="px-4 py-3 font-semibold">Prezzo</th>
                 <th className="px-4 py-3 font-semibold">Sconto</th>
@@ -94,8 +109,12 @@ export function ProductList({
                     <td className="px-4 py-4">
                       <StatusBadge status={product.status} />
                     </td>
-                    <td className="px-4 py-4">{formatCurrency(product.price)}</td>
-                    <td className="px-4 py-4">{formatCurrency(product.discount_price)}</td>
+                    <td className="px-4 py-4">
+                      <PriceValue value={product.price} ivaInclusa={product.iva_inclusa} />
+                    </td>
+                    <td className="px-4 py-4">
+                      <PriceValue value={product.discount_price} ivaInclusa={product.iva_inclusa} />
+                    </td>
                     <td className="px-4 py-4">
                       {isFutureDate(product.promo_scade_il) ? (
                         <span className="text-sm font-medium text-primary">Promo fino al {formatDate(product.promo_scade_il)}</span>

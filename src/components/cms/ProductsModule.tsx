@@ -20,6 +20,7 @@ type ProductPayload = {
   category: string | null;
   badge: string | null;
   in_evidenza: boolean;
+  iva_inclusa: boolean;
   price: number;
   discount_price: number | null;
   promo_scade_il: string | null;
@@ -92,6 +93,7 @@ export function ProductsModule() {
       mostra_countdown: row.mostra_countdown === true,
       quantita_disponibile: typeof row.quantita_disponibile === "number" ? row.quantita_disponibile : null,
       in_evidenza: row.in_evidenza === true,
+      iva_inclusa: row.iva_inclusa !== false,
       created_at: typeof row.created_at === "string" ? row.created_at : undefined,
     };
   }
@@ -102,7 +104,7 @@ export function ProductsModule() {
 
     const { data: productRows, error: productsError } = await cmsSupabase
       .from("products")
-      .select("id, tenant_id, name, category, short_description, long_description, price, discount_price, delivery_type, stock, status, slug, seo_title, seo_description, badge, promo_scade_il, publish_at, mostra_countdown, quantita_disponibile, in_evidenza, created_at")
+      .select("id, tenant_id, name, category, short_description, long_description, price, discount_price, delivery_type, stock, status, slug, seo_title, seo_description, badge, promo_scade_il, publish_at, mostra_countdown, quantita_disponibile, in_evidenza, iva_inclusa, created_at")
       .order("created_at", { ascending: false });
 
     if (productsError) {
@@ -210,6 +212,7 @@ export function ProductsModule() {
       category: form.category.trim() || null,
       badge: form.badge.trim() || null,
       in_evidenza: form.in_evidenza,
+      iva_inclusa: form.iva_inclusa,
       price: Number(form.price),
       discount_price: form.discount_price.trim() === "" ? null : Number(form.discount_price),
       promo_scade_il: form.promo_scade_il ? new Date(form.promo_scade_il).toISOString() : null,
@@ -345,6 +348,7 @@ export function ProductsModule() {
       category: product.category,
       badge: product.badge,
       in_evidenza: product.in_evidenza,
+      iva_inclusa: product.iva_inclusa,
       price: Number(product.price || 0),
       discount_price: product.discount_price === null || product.discount_price === undefined ? null : Number(product.discount_price),
       promo_scade_il: product.promo_scade_il,

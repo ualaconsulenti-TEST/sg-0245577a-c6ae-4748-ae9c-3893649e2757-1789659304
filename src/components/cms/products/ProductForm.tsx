@@ -21,95 +21,52 @@ interface ProductFormProps {
 
 export function ProductForm({ form, formError, isEditing, relatedProducts, onChange, onContinue, onCancelEdit }: ProductFormProps) {
   const longDescriptionRef = useRef<HTMLTextAreaElement | null>(null);
-
   function updateField<K extends keyof ProductFormValues>(field: K, value: ProductFormValues[K]): void {
-    onChange({
-      ...form,
-      [field]: value,
-    });
+    onChange({ ...form, [field]: value });
   }
 
   async function handleFiles(event: ChangeEvent<HTMLInputElement>): Promise<void> {
     const files = Array.from(event.target.files || []);
-
-    if (files.length === 0) {
-      return;
-    }
-
+    if (files.length === 0) return;
     const imageUrls = await Promise.all(files.map((file) => fileToDataUrl(file)));
-    const newImages = imageUrls.map((imageUrl, index) => ({
-      image_url: imageUrl,
-      position: form.images.length + index,
-      alt_text: "",
-    }));
-
+    const newImages = imageUrls.map((imageUrl, index) => ({ image_url: imageUrl, position: form.images.length + index, alt_text: "" }));
     updateField("images", [...form.images, ...newImages]);
     event.target.value = "";
   }
 
   function moveImage(index: number, direction: -1 | 1): void {
     const nextIndex = index + direction;
-
-    if (nextIndex < 0 || nextIndex >= form.images.length) {
-      return;
-    }
-
+    if (nextIndex < 0 || nextIndex >= form.images.length) return;
     const nextImages = [...form.images];
     const currentImage = nextImages[index];
     nextImages[index] = nextImages[nextIndex];
     nextImages[nextIndex] = currentImage;
-
-    updateField(
-      "images",
-      nextImages.map((image, imageIndex) => ({
-        ...image,
-        position: imageIndex,
-      })),
-    );
+    updateField("images", nextImages.map((image, imageIndex) => ({ ...image, position: imageIndex })));
   }
 
   function removeImage(index: number): void {
-    updateField(
-      "images",
-      form.images
-        .filter((_, imageIndex) => imageIndex !== index)
-        .map((image, imageIndex) => ({
-          ...image,
-          position: imageIndex,
-        })),
-    );
+    updateField("images", form.images.filter((_, imageIndex) => imageIndex !== index).map((image, imageIndex) => ({ ...image, position: imageIndex })));
   }
 
   function updateImageAltText(index: number, value: string): void {
-    updateField(
-      "images",
-      form.images.map((image, imageIndex) => (imageIndex === index ? { ...image, alt_text: value } : image)),
-    );
+    updateField("images", form.images.map((image, imageIndex) => (imageIndex === index ? { ...image, alt_text: value } : image)));
   }
 
   function toggleRelatedProduct(productId: string, checked: boolean): void {
-    const currentIds = form.related_product_ids;
-
-    updateField(
-      "related_product_ids",
-      checked ? [...currentIds, productId] : currentIds.filter((currentId) => currentId !== productId),
-    );
+    updateField("related_product_ids", checked ? [...form.related_product_ids, productId] : form.related_product_ids.filter((currentId) => currentId !== productId));
   }
 
   function applyMarker(marker: "**" | "_"): void {
     const textarea = longDescriptionRef.current;
     const value = form.long_description;
-
     if (!textarea) {
       updateField("long_description", `${value}${marker}testo${marker}`);
       return;
     }
-
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const selectedText = value.slice(start, end) || "testo";
-    const nextValue = `${value.slice(0, start)}${marker}${selectedText}${marker}${value.slice(end)}`;
-    updateField("long_description", nextValue);
+    updateField("long_description", `${value.slice(0, start)}${marker}${selectedText}${marker}${value.slice(end)}`);
   }
 
   return (
@@ -137,7 +94,7 @@ export function ProductForm({ form, formError, isEditing, relatedProducts, onCha
                 <Input id="product-category" value={form.category} onChange={(event) => updateField("category", event.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="product-badge">Badge</Label>
+                <Label htmlFor="product-badge">Etichetta promozionale (es. Novità, Ultimi posti)</Label>
                 <Input id="product-badge" placeholder="Novità, Ultimi posti..." value={form.badge} onChange={(event) => updateField("badge", event.target.value)} />
               </div>
             </div>
@@ -149,7 +106,7 @@ export function ProductForm({ form, formError, isEditing, relatedProducts, onCha
 
           <section className="space-y-4 rounded-2xl border border-fuchsia-100 p-4">
             <h3 className="font-semibold text-slate-950">Prezzo</h3>
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-4">
               <div className="space-y-2">
                 <Label htmlFor="product-price">Prezzo</Label>
                 <Input id="product-price" type="number" min="0" step="0.01" value={form.price} onChange={(event) => updateField("price", event.target.value)} required />
@@ -162,6 +119,11 @@ export function ProductForm({ form, formError, isEditing, relatedProducts, onCha
                 <Label htmlFor="product-promo">Promo fino al</Label>
                 <Input id="product-promo" type="date" value={form.promo_scade_il} onChange={(event) => updateField("promo_scade_il", event.target.value)} />
                 <p className="text-xs leading-5 text-slate-500">Il prezzo scontato torna al prezzo pieno dopo questa data.</p>
+              </div>
+              <div className="flex items-center justify-between gap-3 rounded-xl border border-fuchsia-100 px-3 py-2">
+                <span className="text-sm text-slate-700">Prezzo + IVA</span>
+                <Switch checked={form.iva_inclusa} onCheckedChange={(checked) => updateField("iva_inclusa", checked)} />
+                <span className="text-sm text-slate-700">Prezzo IVA inclusa</span>
               </div>
             </div>
           </section>
@@ -189,12 +151,8 @@ export function ProductForm({ form, formError, isEditing, relatedProducts, onCha
             <div className="space-y-2">
               <Label htmlFor="long-description">Descrizione lunga</Label>
               <div className="flex gap-2">
-                <Button type="button" variant="outline" size="sm" onClick={() => applyMarker("**")}>
-                  Grassetto
-                </Button>
-                <Button type="button" variant="outline" size="sm" onClick={() => applyMarker("_")}>
-                  Corsivo
-                </Button>
+                <Button type="button" variant="outline" size="sm" onClick={() => applyMarker("**")}>Grassetto</Button>
+                <Button type="button" variant="outline" size="sm" onClick={() => applyMarker("_")}>Corsivo</Button>
               </div>
               <Textarea ref={longDescriptionRef} id="long-description" rows={5} value={form.long_description} onChange={(event) => updateField("long_description", event.target.value)} />
             </div>
@@ -213,15 +171,9 @@ export function ProductForm({ form, formError, isEditing, relatedProducts, onCha
                       <Input id={`image-alt-${index}`} value={image.alt_text} onChange={(event) => updateImageAltText(index, event.target.value)} />
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      <Button type="button" size="sm" variant="outline" onClick={() => moveImage(index, -1)} disabled={index === 0}>
-                        Su
-                      </Button>
-                      <Button type="button" size="sm" variant="outline" onClick={() => moveImage(index, 1)} disabled={index === form.images.length - 1}>
-                        Giù
-                      </Button>
-                      <Button type="button" size="sm" variant="outline" className="border-red-200 text-red-700" onClick={() => removeImage(index)}>
-                        Elimina
-                      </Button>
+                      <Button type="button" size="sm" variant="outline" onClick={() => moveImage(index, -1)} disabled={index === 0}>Su</Button>
+                      <Button type="button" size="sm" variant="outline" onClick={() => moveImage(index, 1)} disabled={index === form.images.length - 1}>Giù</Button>
+                      <Button type="button" size="sm" variant="outline" className="border-red-200 text-red-700" onClick={() => removeImage(index)}>Elimina</Button>
                     </div>
                   </div>
                 ))}
@@ -249,7 +201,8 @@ export function ProductForm({ form, formError, isEditing, relatedProducts, onCha
             <h3 className="font-semibold text-slate-950">SEO</h3>
             <div className="grid gap-4 md:grid-cols-3">
               <div className="space-y-2">
-                <Input placeholder="slug" value={form.slug} onChange={(event) => updateField("slug", event.target.value)} />
+                <Label htmlFor="product-slug">Indirizzo pagina web (es. tema-natale)</Label>
+                <Input id="product-slug" value={form.slug} onChange={(event) => updateField("slug", event.target.value)} />
               </div>
               <div className="space-y-2">
                 <Input placeholder="seo title" value={form.seo_title} onChange={(event) => updateField("seo_title", event.target.value)} />
@@ -272,21 +225,20 @@ export function ProductForm({ form, formError, isEditing, relatedProducts, onCha
               {form.delivery_type === "fisico" ? (
                 <Input type="number" min="0" placeholder="stock" value={form.stock} onChange={(event) => updateField("stock", event.target.value)} disabled={form.sold_out} />
               ) : null}
-              <div className="flex items-center gap-3 rounded-xl border border-fuchsia-100 px-3 py-2">
-                <Switch checked={form.sold_out} onCheckedChange={(checked) => updateField("sold_out", checked)} />
-                <span className="text-sm text-slate-700">Esaurito manualmente</span>
+              <div className="space-y-2 rounded-xl border border-fuchsia-100 px-3 py-2">
+                <div className="flex items-center gap-3">
+                  <Switch checked={form.sold_out} onCheckedChange={(checked) => updateField("sold_out", checked)} />
+                  <span className="text-sm text-slate-700">Esaurito manualmente</span>
+                </div>
+                <p className="text-xs leading-5 text-slate-500">Nascondi temporaneamente questo prodotto dagli acquisti senza eliminarlo o cambiarne lo stato.</p>
               </div>
             </div>
           </section>
 
           <div className="flex flex-wrap gap-3">
-            <Button type="submit" className="bg-primary hover:bg-primary/90">
-              Continua
-            </Button>
+            <Button type="submit" className="bg-primary hover:bg-primary/90">Continua</Button>
             {isEditing ? (
-              <Button type="button" variant="outline" onClick={onCancelEdit}>
-                Annulla modifica
-              </Button>
+              <Button type="button" variant="outline" onClick={onCancelEdit}>Annulla modifica</Button>
             ) : null}
           </div>
         </form>

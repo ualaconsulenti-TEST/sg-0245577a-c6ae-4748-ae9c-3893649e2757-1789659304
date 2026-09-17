@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -35,11 +35,39 @@ function FormattedDescription({ value }: { value: string }) {
   );
 }
 
+function formatCountdown(milliseconds: number): string {
+  const totalSeconds = Math.max(0, Math.floor(milliseconds / 1000));
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  return `${days} giorni, ${hours} ore, ${minutes} minuti, ${seconds} secondi`;
+}
+
 export function ProductPreview({ form, isSaving, onBack, onPublishNow, onSchedule }: ProductPreviewProps) {
   const [showScheduler, setShowScheduler] = useState(false);
   const [scheduledAt, setScheduledAt] = useState("");
   const [scheduleError, setScheduleError] = useState<string | null>(null);
+  const [remainingMs, setRemainingMs] = useState<number | null>(null);
   const coverImage = form.images[0];
+  const vatLabel = form.iva_inclusa ? "IVA inclusa" : "+ IVA";
+  const availableQuantity = form.quantita_disponibile.trim();
+
+  useEffect(() => {
+    if (!form.mostra_countdown || !form.promo_scade_il) {
+      setRemainingMs(null);
+      return;
+    }
+
+    function updateCountdown(): void {
+      setRemainingMs(new Date(form.promo_scade_il).getTime() - Date.now());
+    }
+
+    updateCountdown();
+    const intervalId = window.setInterval(updateCountdown, 1000);
+    return () => window.clearInterval(intervalId);
+  }, [form.mostra_countdown, form.promo_scade_il]);
 
   function handleSchedule(): void {
     if (!showScheduler) {
@@ -103,12 +131,21 @@ export function ProductPreview({ form, isSaving, onBack, onPublishNow, onSchedul
                 ) : (
                   <p className="text-2xl font-semibold text-slate-950">{formatCurrency(form.price)}</p>
                 )}
+                <p className="mt-1 text-xs font-medium text-slate-500">{vatLabel}</p>
                 {isFutureDate(form.promo_scade_il) ? (
                   <p className="mt-1 text-xs font-medium text-primary">Promo fino al {formatDate(form.promo_scade_il)}</p>
                 ) : null}
               </div>
             </div>
 
+            {remainingMs !== null && remainingMs > 0 ? (
+              <div className="rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm font-medium text-primary">
+                Countdown promozione: {formatCountdown(remainingMs)}
+              </div>
+            ) : null}
+            {availableQuantity ? (
+              <p className="text-sm font-medium text-slate-700">Solo {availableQuantity} disponibili</p>
+            ) : null}
             {form.short_description.trim() ? <p className="text-base leading-7 text-slate-700">{form.short_description.trim()}</p> : null}
             {form.long_description.trim() ? <FormattedDescription value={form.long_description.trim()} /> : null}
 

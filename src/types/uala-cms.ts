@@ -69,6 +69,7 @@ export interface ProductRow {
   mostra_countdown: boolean;
   quantita_disponibile: number | null;
   in_evidenza: boolean;
+  iva_inclusa: boolean;
   created_at?: string;
 }
 
@@ -77,6 +78,7 @@ export interface ProductFormValues {
   category: string;
   badge: string;
   in_evidenza: boolean;
+  iva_inclusa: boolean;
   price: string;
   discount_price: string;
   promo_scade_il: string;
