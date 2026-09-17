@@ -171,7 +171,7 @@ export function SuperAdminModule() {
         throw tenantsError;
       }
 
-      const normalizedTenants = ((data || []) as TenantRecord[])
+      const normalizedTenants: SuperAdminTenant[] = ((data || []) as TenantRecord[])
         .filter((tenant): tenant is TenantRecord & { id: string } => typeof tenant.id === "string")
         .map((tenant) => ({
           id: tenant.id,
