@@ -1,6 +1,6 @@
 ---
 title: Estensioni modulo Prodotti
-status: in_progress
+status: done
 priority: high
 type: feature
 tags: [products, supabase, catalog]
@@ -13,14 +13,14 @@ position: 4
 Aggiornare solo il modulo Prodotti: form, anteprima, elenco. Non toccare login, dashboard generale o altri moduli. Usare solo le tabelle esistenti products, product_images e product_related come sono strutturate ora. Se mancano campi o tabelle richiesti, fermarsi e chiedere all'utente.
 
 ## Checklist
-- [ ] Verificare schema esistente per products, product_images e product_related senza modificarlo
-- [ ] Aggiungere nel form "Prodotto in evidenza" salvato in evidenza
-- [ ] Aggiungere sezione "Urgenza e disponibilità" con mostra_countdown e quantita_disponibile
-- [ ] Aggiungere alt_text per ogni foto nella sezione Foto
-- [ ] Aggiungere sezione "Prodotti correlati" con selezione multipla e salvataggio in product_related
-- [ ] Aggiungere contatori caratteri SEO per seo_title e seo_description
-- [ ] Aggiungere pulsante Duplica nell'elenco prodotti con slug vuoto e status bozza
-- [ ] Mostrare etichetta "In evidenza" nell'elenco quando in_evidenza è vero
+- [x] Verificare schema esistente per products, product_images e product_related senza modificarlo
+- [x] Aggiungere nel form "Prodotto in evidenza" salvato in evidenza
+- [x] Aggiungere sezione "Urgenza e disponibilità" con mostra_countdown e quantita_disponibile
+- [x] Aggiungere alt_text per ogni foto nella sezione Foto
+- [x] Aggiungere sezione "Prodotti correlati" con selezione multipla e salvataggio in product_related
+- [x] Aggiungere contatori caratteri SEO per seo_title e seo_description
+- [x] Aggiungere pulsante Duplica nell'elenco prodotti con slug vuoto e status bozza
+- [x] Mostrare etichetta "In evidenza" nell'elenco quando in_evidenza è vero
 
 ## Acceptance
 Il modulo Prodotti salva e mostra solo i nuovi dati richiesti usando le tabelle esistenti.
