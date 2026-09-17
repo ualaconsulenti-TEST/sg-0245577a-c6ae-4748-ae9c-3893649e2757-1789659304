@@ -3,6 +3,7 @@ import type { ProductFormValues, ProductImageRow, ProductRow, ProductStatus } fr
 export const emptyProductForm: ProductFormValues = {
   name: "",
   category: "",
+  codice_prodotto: "",
   badge: "",
   in_evidenza: false,
   iva_inclusa: true,
@@ -20,7 +21,12 @@ export const emptyProductForm: ProductFormValues = {
   seo_description: "",
   delivery_type: "digitale",
   stock: "",
+  tempo_consegna: "",
+  peso_kg: "",
   sold_out: false,
+  video_url: "",
+  ordine_visualizzazione: "0",
+  note_interne: "",
 };
 
 export function formatCurrency(value: ProductRow["price"]): string {
@@ -75,6 +81,7 @@ export function productToForm(product: ProductRow, images: ProductImageRow[], re
   return {
     name: product.name || "",
     category: product.category || "",
+    codice_prodotto: product.codice_prodotto || "",
     badge: product.badge || "",
     in_evidenza: product.in_evidenza,
     iva_inclusa: product.iva_inclusa !== false,
@@ -100,7 +107,12 @@ export function productToForm(product: ProductRow, images: ProductImageRow[], re
     seo_description: product.seo_description || "",
     delivery_type: product.delivery_type,
     stock: stockValue,
+    tempo_consegna: product.tempo_consegna || "",
+    peso_kg: product.peso_kg === null || product.peso_kg === undefined ? "" : String(product.peso_kg),
     sold_out: product.delivery_type === "fisico" && product.stock === 0,
+    video_url: product.video_url || "",
+    ordine_visualizzazione: String(product.ordine_visualizzazione || 0),
+    note_interne: product.note_interne || "",
   };
 }
 

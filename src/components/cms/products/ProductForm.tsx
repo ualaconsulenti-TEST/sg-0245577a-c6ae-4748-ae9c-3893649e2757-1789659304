@@ -21,6 +21,7 @@ interface ProductFormProps {
 
 export function ProductForm({ form, formError, isEditing, relatedProducts, onChange, onContinue, onCancelEdit }: ProductFormProps) {
   const longDescriptionRef = useRef<HTMLTextAreaElement | null>(null);
+
   function updateField<K extends keyof ProductFormValues>(field: K, value: ProductFormValues[K]): void {
     onChange({ ...form, [field]: value });
   }
@@ -94,8 +95,16 @@ export function ProductForm({ form, formError, isEditing, relatedProducts, onCha
                 <Input id="product-category" value={form.category} onChange={(event) => updateField("category", event.target.value)} />
               </div>
               <div className="space-y-2">
+                <Label htmlFor="product-code">Codice prodotto (SKU)</Label>
+                <Input id="product-code" value={form.codice_prodotto} onChange={(event) => updateField("codice_prodotto", event.target.value)} />
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="product-badge">Etichetta promozionale (es. Novità, Ultimi posti)</Label>
                 <Input id="product-badge" placeholder="Novità, Ultimi posti..." value={form.badge} onChange={(event) => updateField("badge", event.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="display-order">Ordine di visualizzazione nel catalogo</Label>
+                <Input id="display-order" type="number" step="1" value={form.ordine_visualizzazione} onChange={(event) => updateField("ordine_visualizzazione", event.target.value)} />
               </div>
             </div>
             <div className="flex items-center gap-3 rounded-xl border border-fuchsia-100 px-3 py-2">
@@ -161,6 +170,10 @@ export function ProductForm({ form, formError, isEditing, relatedProducts, onCha
           <section className="space-y-4 rounded-2xl border border-fuchsia-100 p-4">
             <h3 className="font-semibold text-slate-950">Foto</h3>
             <Input type="file" accept="image/*" multiple onChange={(event) => void handleFiles(event)} />
+            <div className="space-y-2">
+              <Label htmlFor="product-video">Link video (YouTube o Vimeo, opzionale)</Label>
+              <Input id="product-video" value={form.video_url} onChange={(event) => updateField("video_url", event.target.value)} />
+            </div>
             {form.images.length > 0 ? (
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {form.images.map((image, index) => (
@@ -218,12 +231,28 @@ export function ProductForm({ form, formError, isEditing, relatedProducts, onCha
           <section className="space-y-4 rounded-2xl border border-fuchsia-100 p-4">
             <h3 className="font-semibold text-slate-950">Disponibilità</h3>
             <div className="grid gap-4 md:grid-cols-3">
-              <select className="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm" value={form.delivery_type} onChange={(event) => updateField("delivery_type", event.target.value as DeliveryType)}>
-                <option value="digitale">digitale</option>
-                <option value="fisico">fisico</option>
-              </select>
+              <div className="space-y-2">
+                <Label>Tipo consegna</Label>
+                <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={form.delivery_type} onChange={(event) => updateField("delivery_type", event.target.value as DeliveryType)}>
+                  <option value="digitale">digitale</option>
+                  <option value="fisico">fisico</option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="delivery-time">Tempo di consegna (es. Entro 3 giorni lavorativi)</Label>
+                <Input id="delivery-time" value={form.tempo_consegna} onChange={(event) => updateField("tempo_consegna", event.target.value)} />
+              </div>
               {form.delivery_type === "fisico" ? (
-                <Input type="number" min="0" placeholder="stock" value={form.stock} onChange={(event) => updateField("stock", event.target.value)} disabled={form.sold_out} />
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="product-stock">Stock</Label>
+                    <Input id="product-stock" type="number" min="0" value={form.stock} onChange={(event) => updateField("stock", event.target.value)} disabled={form.sold_out} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="product-weight">Peso (kg)</Label>
+                    <Input id="product-weight" type="number" min="0" step="0.01" value={form.peso_kg} onChange={(event) => updateField("peso_kg", event.target.value)} />
+                  </div>
+                </>
               ) : null}
               <div className="space-y-2 rounded-xl border border-fuchsia-100 px-3 py-2">
                 <div className="flex items-center gap-3">
@@ -233,6 +262,11 @@ export function ProductForm({ form, formError, isEditing, relatedProducts, onCha
                 <p className="text-xs leading-5 text-slate-500">Nascondi temporaneamente questo prodotto dagli acquisti senza eliminarlo o cambiarne lo stato.</p>
               </div>
             </div>
+          </section>
+
+          <section className="space-y-4 rounded-2xl border border-fuchsia-100 p-4">
+            <h3 className="font-semibold text-slate-950">Note interne (visibili solo a te, mai ai clienti)</h3>
+            <Textarea rows={4} value={form.note_interne} onChange={(event) => updateField("note_interne", event.target.value)} />
           </section>
 
           <div className="flex flex-wrap gap-3">

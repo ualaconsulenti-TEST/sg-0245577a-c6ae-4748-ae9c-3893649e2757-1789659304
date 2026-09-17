@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,10 +9,11 @@ import { formatCurrency, formatDate, isFutureDate } from "./productUtils";
 
 interface ProductPreviewProps {
   form: ProductFormValues;
-  isSaving: boolean;
-  onBack: () => void;
-  onPublishNow: () => void;
-  onSchedule: (publishAt: string) => void;
+  isSaving?: boolean;
+  mode?: "edit" | "readonly";
+  onBack?: () => void;
+  onPublishNow?: () => void;
+  onSchedule?: (publishAt: string) => void;
 }
 
 function FormattedDescription({ value }: { value: string }) {
@@ -45,14 +46,55 @@ function formatCountdown(milliseconds: number): string {
   return `${days} giorni, ${hours} ore, ${minutes} minuti, ${seconds} secondi`;
 }
 
-export function ProductPreview({ form, isSaving, onBack, onPublishNow, onSchedule }: ProductPreviewProps) {
+function videoEmbedUrl(value: string): string | null {
+  const trimmedValue = value.trim();
+
+  if (!trimmedValue) {
+    return null;
+  }
+
+  try {
+    const url = new URL(trimmedValue);
+    const host = url.hostname.replace("www.", "");
+
+    if (host === "youtube.com" || host === "m.youtube.com") {
+      const videoId = url.searchParams.get("v");
+      return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
+    }
+
+    if (host === "youtu.be") {
+      const videoId = url.pathname.split("/").filter(Boolean)[0];
+      return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
+    }
+
+    if (host === "vimeo.com") {
+      const videoId = url.pathname.split("/").filter(Boolean)[0];
+      return videoId ? `https://player.vimeo.com/video/${videoId}` : null;
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+export function ProductPreview({ form, isSaving = false, mode = "edit", onBack, onPublishNow, onSchedule }: ProductPreviewProps) {
   const [showScheduler, setShowScheduler] = useState(false);
   const [scheduledAt, setScheduledAt] = useState("");
   const [scheduleError, setScheduleError] = useState<string | null>(null);
   const [remainingMs, setRemainingMs] = useState<number | null>(null);
-  const coverImage = form.images[0];
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const sortedImages = useMemo(() => form.images.slice().sort((first, second) => first.position - second.position), [form.images]);
+  const activeImage = sortedImages[activeImageIndex] || sortedImages[0];
   const vatLabel = form.iva_inclusa ? "IVA inclusa" : "+ IVA";
   const availableQuantity = form.quantita_disponibile.trim();
+  const embedUrl = videoEmbedUrl(form.video_url);
+
+  useEffect(() => {
+    if (activeImageIndex >= sortedImages.length) {
+      setActiveImageIndex(0);
+    }
+  }, [activeImageIndex, sortedImages.length]);
 
   useEffect(() => {
     if (!form.mostra_countdown || !form.promo_scade_il) {
@@ -70,6 +112,10 @@ export function ProductPreview({ form, isSaving, onBack, onPublishNow, onSchedul
   }, [form.mostra_countdown, form.promo_scade_il]);
 
   function handleSchedule(): void {
+    if (!onSchedule) {
+      return;
+    }
+
     if (!showScheduler) {
       setShowScheduler(true);
       return;
@@ -89,6 +135,14 @@ export function ProductPreview({ form, isSaving, onBack, onPublishNow, onSchedul
     onSchedule(scheduledAt);
   }
 
+  function showPreviousImage(): void {
+    setActiveImageIndex((currentIndex) => (currentIndex === 0 ? sortedImages.length - 1 : currentIndex - 1));
+  }
+
+  function showNextImage(): void {
+    setActiveImageIndex((currentIndex) => (currentIndex + 1 >= sortedImages.length ? 0 : currentIndex + 1));
+  }
+
   return (
     <Card className="border-fuchsia-200 shadow-sm">
       <CardHeader>
@@ -102,11 +156,46 @@ export function ProductPreview({ form, isSaving, onBack, onPublishNow, onSchedul
         ) : null}
 
         <article className="overflow-hidden rounded-3xl border border-fuchsia-100 bg-white">
-          {coverImage ? (
-            <img src={coverImage.image_url} alt={coverImage.alt_text || form.name || "Anteprima prodotto"} className="h-72 w-full object-cover" />
+          {activeImage ? (
+            <div className="relative">
+              <img src={activeImage.image_url} alt={activeImage.alt_text || form.name || "Anteprima prodotto"} className="h-72 w-full object-cover" />
+              {sortedImages.length > 1 ? (
+                <>
+                  <Button type="button" variant="outline" size="sm" className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/90" onClick={showPreviousImage}>
+                    ‹
+                  </Button>
+                  <Button type="button" variant="outline" size="sm" className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/90" onClick={showNextImage}>
+                    ›
+                  </Button>
+                  <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-2">
+                    {sortedImages.map((image, index) => (
+                      <button
+                        key={`${image.image_url}-${index}`}
+                        type="button"
+                        aria-label={`Mostra foto ${index + 1}`}
+                        className={`h-2.5 w-2.5 rounded-full ${index === activeImageIndex ? "bg-primary" : "bg-white/80"}`}
+                        onClick={() => setActiveImageIndex(index)}
+                      />
+                    ))}
+                  </div>
+                </>
+              ) : null}
+            </div>
           ) : (
             <div className="flex h-72 items-center justify-center bg-fuchsia-50 text-sm text-slate-500">Nessuna foto caricata</div>
           )}
+
+          {embedUrl ? (
+            <div className="border-t border-fuchsia-100 bg-slate-950">
+              <iframe
+                title="Video prodotto"
+                src={embedUrl}
+                className="aspect-video w-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              />
+            </div>
+          ) : null}
 
           <div className="space-y-5 p-6">
             <div className="flex flex-wrap items-start justify-between gap-3">
@@ -132,9 +221,7 @@ export function ProductPreview({ form, isSaving, onBack, onPublishNow, onSchedul
                   <p className="text-2xl font-semibold text-slate-950">{formatCurrency(form.price)}</p>
                 )}
                 <p className="mt-1 text-xs font-medium text-slate-500">{vatLabel}</p>
-                {isFutureDate(form.promo_scade_il) ? (
-                  <p className="mt-1 text-xs font-medium text-primary">Promo fino al {formatDate(form.promo_scade_il)}</p>
-                ) : null}
+                {isFutureDate(form.promo_scade_il) ? <p className="mt-1 text-xs font-medium text-primary">Promo fino al {formatDate(form.promo_scade_il)}</p> : null}
               </div>
             </div>
 
@@ -143,9 +230,7 @@ export function ProductPreview({ form, isSaving, onBack, onPublishNow, onSchedul
                 Countdown promozione: {formatCountdown(remainingMs)}
               </div>
             ) : null}
-            {availableQuantity ? (
-              <p className="text-sm font-medium text-slate-700">Solo {availableQuantity} disponibili</p>
-            ) : null}
+            {availableQuantity ? <p className="text-sm font-medium text-slate-700">Solo {availableQuantity} disponibili</p> : null}
             {form.short_description.trim() ? <p className="text-base leading-7 text-slate-700">{form.short_description.trim()}</p> : null}
             {form.long_description.trim() ? <FormattedDescription value={form.long_description.trim()} /> : null}
 
@@ -155,7 +240,7 @@ export function ProductPreview({ form, isSaving, onBack, onPublishNow, onSchedul
           </div>
         </article>
 
-        {showScheduler ? (
+        {mode === "edit" && showScheduler ? (
           <div className="space-y-2 rounded-2xl border border-fuchsia-100 p-4">
             <label htmlFor="publish-at" className="text-sm font-medium text-slate-700">
               Data e ora di pubblicazione
@@ -164,17 +249,19 @@ export function ProductPreview({ form, isSaving, onBack, onPublishNow, onSchedul
           </div>
         ) : null}
 
-        <div className="flex flex-wrap gap-3">
-          <Button type="button" variant="outline" onClick={onBack} disabled={isSaving}>
-            Modifica
-          </Button>
-          <Button type="button" className="bg-primary hover:bg-primary/90" onClick={onPublishNow} disabled={isSaving}>
-            {isSaving ? "Salvataggio..." : "Pubblica ora"}
-          </Button>
-          <Button type="button" variant="outline" onClick={handleSchedule} disabled={isSaving}>
-            Programma
-          </Button>
-        </div>
+        {mode === "edit" ? (
+          <div className="flex flex-wrap gap-3">
+            <Button type="button" variant="outline" onClick={onBack} disabled={isSaving}>
+              Modifica
+            </Button>
+            <Button type="button" className="bg-primary hover:bg-primary/90" onClick={onPublishNow} disabled={isSaving}>
+              {isSaving ? "Salvataggio..." : "Pubblica ora"}
+            </Button>
+            <Button type="button" variant="outline" onClick={handleSchedule} disabled={isSaving}>
+              Programma
+            </Button>
+          </div>
+        ) : null}
       </CardContent>
     </Card>
   );

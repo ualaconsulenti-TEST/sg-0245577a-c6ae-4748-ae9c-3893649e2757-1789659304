@@ -1,3 +1,4 @@
+import { Eye } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { ProductRow, ProductStatus } from "@/types/uala-cms";
@@ -8,6 +9,7 @@ interface ProductListProps {
   isLoading: boolean;
   showArchived: boolean;
   onToggleArchived: () => void;
+  onPreview: (product: ProductRow) => void;
   onEdit: (product: ProductRow) => void;
   onDuplicate: (product: ProductRow) => void;
   onArchive: (productId: string) => void;
@@ -50,6 +52,7 @@ export function ProductList({
   isLoading,
   showArchived,
   onToggleArchived,
+  onPreview,
   onEdit,
   onDuplicate,
   onArchive,
@@ -116,14 +119,13 @@ export function ProductList({
                       <PriceValue value={product.discount_price} ivaInclusa={product.iva_inclusa} />
                     </td>
                     <td className="px-4 py-4">
-                      {isFutureDate(product.promo_scade_il) ? (
-                        <span className="text-sm font-medium text-primary">Promo fino al {formatDate(product.promo_scade_il)}</span>
-                      ) : (
-                        "—"
-                      )}
+                      {isFutureDate(product.promo_scade_il) ? <span className="text-sm font-medium text-primary">Promo fino al {formatDate(product.promo_scade_il)}</span> : "—"}
                     </td>
                     <td className="px-4 py-4">
                       <div className="flex flex-wrap gap-2">
+                        <Button type="button" size="sm" variant="outline" aria-label="Anteprima prodotto" onClick={() => onPreview(product)}>
+                          <Eye className="h-4 w-4" />
+                        </Button>
                         <Button type="button" size="sm" variant="outline" onClick={() => onEdit(product)}>
                           Modifica
                         </Button>

@@ -1,6 +1,7 @@
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenantSession } from "@/hooks/use-tenant-session";
@@ -18,6 +19,7 @@ type ProductPayload = {
   tenant_id?: string;
   name: string;
   category: string | null;
+  codice_prodotto: string | null;
   badge: string | null;
   in_evidenza: boolean;
   iva_inclusa: boolean;
@@ -33,8 +35,13 @@ type ProductPayload = {
   seo_description: string | null;
   delivery_type: string;
   stock: number | null;
+  tempo_consegna: string | null;
+  peso_kg: number | null;
   status: ProductStatus;
   publish_at: string | null;
+  video_url: string | null;
+  ordine_visualizzazione: number;
+  note_interne: string | null;
 };
 
 export function ProductsModule() {
@@ -46,6 +53,7 @@ export function ProductsModule() {
   const [form, setForm] = useState<ProductFormValues>(emptyProductForm);
   const [formMode, setFormMode] = useState<FormMode>("form");
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
+  const [previewProduct, setPreviewProduct] = useState<ProductRow | null>(null);
   const [showArchived, setShowArchived] = useState(false);
   const [isLoadingProducts, setIsLoadingProducts] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -67,9 +75,7 @@ export function ProductsModule() {
     }, {});
   }, [relatedRows]);
 
-  const relatedProducts = useMemo(() => {
-    return products.filter((product) => product.id !== editingProductId);
-  }, [editingProductId, products]);
+  const relatedProducts = useMemo(() => products.filter((product) => product.id !== editingProductId), [editingProductId, products]);
 
   function normalizeProductRow(row: Record<string, unknown>): ProductRow {
     return {
@@ -77,12 +83,15 @@ export function ProductsModule() {
       tenant_id: row.tenant_id ? String(row.tenant_id) : undefined,
       name: String(row.name || ""),
       category: typeof row.category === "string" ? row.category : null,
+      codice_prodotto: typeof row.codice_prodotto === "string" ? row.codice_prodotto : null,
       short_description: typeof row.short_description === "string" ? row.short_description : null,
       long_description: typeof row.long_description === "string" ? row.long_description : null,
       price: typeof row.price === "number" || typeof row.price === "string" ? row.price : null,
       discount_price: typeof row.discount_price === "number" || typeof row.discount_price === "string" ? row.discount_price : null,
       delivery_type: row.delivery_type === "fisico" ? "fisico" : "digitale",
       stock: typeof row.stock === "number" ? row.stock : null,
+      tempo_consegna: typeof row.tempo_consegna === "string" ? row.tempo_consegna : null,
+      peso_kg: typeof row.peso_kg === "number" || typeof row.peso_kg === "string" ? row.peso_kg : null,
       status: normalizeStatus(typeof row.status === "string" ? row.status : null),
       slug: typeof row.slug === "string" ? row.slug : null,
       seo_title: typeof row.seo_title === "string" ? row.seo_title : null,
@@ -94,6 +103,9 @@ export function ProductsModule() {
       quantita_disponibile: typeof row.quantita_disponibile === "number" ? row.quantita_disponibile : null,
       in_evidenza: row.in_evidenza === true,
       iva_inclusa: row.iva_inclusa !== false,
+      video_url: typeof row.video_url === "string" ? row.video_url : null,
+      ordine_visualizzazione: Number.isFinite(Number(row.ordine_visualizzazione)) ? Number(row.ordine_visualizzazione) : 0,
+      note_interne: typeof row.note_interne === "string" ? row.note_interne : null,
       created_at: typeof row.created_at === "string" ? row.created_at : undefined,
     };
   }
@@ -104,8 +116,8 @@ export function ProductsModule() {
 
     const { data: productRows, error: productsError } = await cmsSupabase
       .from("products")
-      .select("id, tenant_id, name, category, short_description, long_description, price, discount_price, delivery_type, stock, status, slug, seo_title, seo_description, badge, promo_scade_il, publish_at, mostra_countdown, quantita_disponibile, in_evidenza, iva_inclusa, created_at")
-      .order("created_at", { ascending: false });
+      .select("id, tenant_id, name, category, codice_prodotto, short_description, long_description, price, discount_price, delivery_type, stock, tempo_consegna, peso_kg, status, slug, seo_title, seo_description, badge, promo_scade_il, publish_at, mostra_countdown, quantita_disponibile, in_evidenza, iva_inclusa, video_url, ordine_visualizzazione, note_interne, created_at")
+      .order("ordine_visualizzazione", { ascending: true });
 
     if (productsError) {
       setProducts([]);
@@ -116,10 +128,7 @@ export function ProductsModule() {
       return;
     }
 
-    const { data: imageRows, error: imagesError } = await cmsSupabase
-      .from("product_images")
-      .select("id, tenant_id, product_id, image_url, position, alt_text, created_at")
-      .order("position", { ascending: true });
+    const { data: imageRows, error: imagesError } = await cmsSupabase.from("product_images").select("id, tenant_id, product_id, image_url, position, alt_text, created_at").order("position", { ascending: true });
 
     if (imagesError) {
       setProducts((productRows || []).map(normalizeProductRow));
@@ -130,9 +139,7 @@ export function ProductsModule() {
       return;
     }
 
-    const { data: relatedData, error: relatedError } = await cmsSupabase
-      .from("product_related")
-      .select("id, tenant_id, product_id, related_product_id, created_at");
+    const { data: relatedData, error: relatedError } = await cmsSupabase.from("product_related").select("id, tenant_id, product_id, related_product_id, created_at");
 
     if (relatedError) {
       setProducts((productRows || []).map(normalizeProductRow));
@@ -165,6 +172,8 @@ export function ProductsModule() {
     const discountPrice = form.discount_price.trim() === "" ? null : Number(form.discount_price);
     const stock = form.stock.trim() === "" ? null : Number(form.stock);
     const availableQuantity = form.quantita_disponibile.trim() === "" ? null : Number(form.quantita_disponibile);
+    const weight = form.peso_kg.trim() === "" ? null : Number(form.peso_kg);
+    const displayOrder = form.ordine_visualizzazione.trim() === "" ? 0 : Number(form.ordine_visualizzazione);
 
     if (!form.name.trim()) {
       setFormError("Il nome prodotto è obbligatorio.");
@@ -183,6 +192,16 @@ export function ProductsModule() {
 
     if (availableQuantity !== null && (!Number.isInteger(availableQuantity) || availableQuantity < 0)) {
       setFormError("Inserisci una quantità disponibile valida oppure lascia il campo vuoto.");
+      return false;
+    }
+
+    if (!Number.isInteger(displayOrder)) {
+      setFormError("Inserisci un ordine di visualizzazione valido.");
+      return false;
+    }
+
+    if (form.delivery_type === "fisico" && weight !== null && (!Number.isFinite(weight) || weight < 0)) {
+      setFormError("Inserisci un peso valido oppure lascia il campo vuoto.");
       return false;
     }
 
@@ -206,10 +225,12 @@ export function ProductsModule() {
 
   function buildPayload(status: ProductStatus, publishAt: string | null): ProductPayload {
     const stock = form.delivery_type === "fisico" ? (form.sold_out ? 0 : form.stock.trim() === "" ? null : Number(form.stock)) : null;
+    const pesoKg = form.delivery_type === "fisico" && form.peso_kg.trim() !== "" ? Number(form.peso_kg) : null;
 
     return {
       name: form.name.trim(),
       category: form.category.trim() || null,
+      codice_prodotto: form.codice_prodotto.trim() || null,
       badge: form.badge.trim() || null,
       in_evidenza: form.in_evidenza,
       iva_inclusa: form.iva_inclusa,
@@ -225,8 +246,13 @@ export function ProductsModule() {
       seo_description: form.seo_description.trim() || null,
       delivery_type: form.delivery_type,
       stock,
+      tempo_consegna: form.tempo_consegna.trim() || null,
+      peso_kg: pesoKg,
       status,
       publish_at: publishAt,
+      video_url: form.video_url.trim() || null,
+      ordine_visualizzazione: form.ordine_visualizzazione.trim() === "" ? 0 : Number(form.ordine_visualizzazione),
+      note_interne: form.note_interne.trim() || null,
     };
   }
 
@@ -294,14 +320,7 @@ export function ProductsModule() {
           throw new Error(error.message);
         }
       } else {
-        const { data, error } = await cmsSupabase
-          .from("products")
-          .insert({
-            ...payload,
-            tenant_id: tenantId,
-          })
-          .select("id")
-          .single();
+        const { data, error } = await cmsSupabase.from("products").insert({ ...payload, tenant_id: tenantId }).select("id").single();
 
         if (error) {
           throw new Error(error.message);
@@ -346,6 +365,7 @@ export function ProductsModule() {
       tenant_id: tenantId,
       name: product.name,
       category: product.category,
+      codice_prodotto: product.codice_prodotto,
       badge: product.badge,
       in_evidenza: product.in_evidenza,
       iva_inclusa: product.iva_inclusa,
@@ -361,8 +381,13 @@ export function ProductsModule() {
       seo_description: product.seo_description,
       delivery_type: product.delivery_type,
       stock: product.stock,
+      tempo_consegna: product.tempo_consegna,
+      peso_kg: product.peso_kg === null || product.peso_kg === undefined ? null : Number(product.peso_kg),
       status: "bozza",
       publish_at: product.publish_at,
+      video_url: product.video_url,
+      ordine_visualizzazione: product.ordine_visualizzazione,
+      note_interne: product.note_interne,
     };
 
     const { error } = await cmsSupabase.from("products").insert(payload);
@@ -383,6 +408,8 @@ export function ProductsModule() {
     setFormError(null);
     setSuccessMessage(null);
   }
+
+  const previewForm = previewProduct ? productToForm(previewProduct, imagesByProduct[previewProduct.id] || [], relatedIdsByProduct[previewProduct.id] || []) : null;
 
   return (
     <div className="space-y-6">
@@ -407,6 +434,7 @@ export function ProductsModule() {
             isLoading={isLoadingProducts}
             showArchived={showArchived}
             onToggleArchived={() => setShowArchived((currentValue) => !currentValue)}
+            onPreview={setPreviewProduct}
             onEdit={handleEdit}
             onDuplicate={(product) => void duplicateProduct(product)}
             onArchive={(productId) => void updateProductStatus(productId, "archiviato")}
@@ -435,6 +463,19 @@ export function ProductsModule() {
           onCancelEdit={resetForm}
         />
       )}
+
+      {previewForm ? (
+        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-950/50 px-4 py-8">
+          <div className="w-full max-w-4xl space-y-3">
+            <div className="flex justify-end">
+              <Button type="button" variant="outline" className="bg-white" onClick={() => setPreviewProduct(null)}>
+                Chiudi
+              </Button>
+            </div>
+            <ProductPreview form={previewForm} mode="readonly" />
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

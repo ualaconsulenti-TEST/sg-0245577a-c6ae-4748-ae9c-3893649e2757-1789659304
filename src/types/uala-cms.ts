@@ -53,12 +53,15 @@ export interface ProductRow {
   tenant_id?: string;
   name: string;
   category: string | null;
+  codice_prodotto: string | null;
   short_description: string | null;
   long_description: string | null;
   price: number | string | null;
   discount_price: number | string | null;
   delivery_type: DeliveryType;
   stock: number | null;
+  tempo_consegna: string | null;
+  peso_kg: number | string | null;
   status: ProductStatus;
   slug: string | null;
   seo_title: string | null;
@@ -70,12 +73,16 @@ export interface ProductRow {
   quantita_disponibile: number | null;
   in_evidenza: boolean;
   iva_inclusa: boolean;
+  video_url: string | null;
+  ordine_visualizzazione: number;
+  note_interne: string | null;
   created_at?: string;
 }
 
 export interface ProductFormValues {
   name: string;
   category: string;
+  codice_prodotto: string;
   badge: string;
   in_evidenza: boolean;
   iva_inclusa: boolean;
@@ -93,5 +100,10 @@ export interface ProductFormValues {
   seo_description: string;
   delivery_type: DeliveryType;
   stock: string;
+  tempo_consegna: string;
+  peso_kg: string;
   sold_out: boolean;
+  video_url: string;
+  ordine_visualizzazione: string;
+  note_interne: string;
 }
