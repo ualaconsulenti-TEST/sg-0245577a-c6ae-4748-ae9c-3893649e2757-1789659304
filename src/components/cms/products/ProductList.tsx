@@ -1,6 +1,8 @@
+import { useEffect, useMemo, useState } from "react";
 import { Eye } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import type { ProductRow, ProductStatus } from "@/types/uala-cms";
 import { formatCurrency, formatDate, isFutureDate } from "./productUtils";
 
@@ -16,6 +18,7 @@ interface ProductListProps {
   onPause: (productId: string) => void;
   onReactivate: (productId: string) => void;
   onPermanentDelete: (productId: string) => void;
+  onBulkDelete: (productIds: string[]) => Promise<void> | void;
 }
 
 const statusClassNames: Record<ProductStatus, string> = {
@@ -60,8 +63,42 @@ export function ProductList({
   onPause,
   onReactivate,
   onPermanentDelete,
+  onBulkDelete,
 }: ProductListProps) {
-  const visibleProducts = showArchived ? products : products.filter((product) => product.status !== "archiviato");
+  const visibleProducts = useMemo(() => {
+    return showArchived ? products : products.filter((product) => product.status !== "archiviato");
+  }, [products, showArchived]);
+  const visibleProductIds = useMemo(() => new Set(visibleProducts.map((product) => product.id)), [visibleProducts]);
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
+  const selectedCount = selectedProductIds.length;
+
+  useEffect(() => {
+    setSelectedProductIds((currentIds) => currentIds.filter((productId) => visibleProductIds.has(productId)));
+  }, [visibleProductIds]);
+
+  function updateSelectedProduct(productId: string, checked: boolean): void {
+    setSelectedProductIds((currentIds) => {
+      if (checked) {
+        return currentIds.includes(productId) ? currentIds : [...currentIds, productId];
+      }
+
+      return currentIds.filter((currentId) => currentId !== productId);
+    });
+  }
+
+  async function deleteSelectedProducts(): Promise<void> {
+    if (selectedCount === 0) {
+      return;
+    }
+
+    if (!window.confirm(`Vuoi eliminare definitivamente ${selectedCount} prodotti selezionati?`)) {
+      return;
+    }
+
+    const productIds = [...selectedProductIds];
+    setSelectedProductIds([]);
+    await onBulkDelete(productIds);
+  }
 
   return (
     <div className="space-y-4">
@@ -70,16 +107,26 @@ export function ProductList({
           <h2 className="text-xl font-semibold text-slate-950">Elenco prodotti</h2>
           <p className="mt-1 text-sm text-slate-600">Gli archiviati sono nascosti dall'elenco principale.</p>
         </div>
-        <Button type="button" variant="outline" onClick={onToggleArchived}>
-          {showArchived ? "Nascondi archiviati" : "Mostra archiviati"}
-        </Button>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          {selectedCount > 0 ? (
+            <Button type="button" variant="outline" className="border-red-200 text-red-700 hover:bg-red-50" onClick={() => void deleteSelectedProducts()}>
+              Elimina selezionati ({selectedCount})
+            </Button>
+          ) : null}
+          <Button type="button" variant="outline" onClick={onToggleArchived}>
+            {showArchived ? "Nascondi archiviati" : "Mostra archiviati"}
+          </Button>
+        </div>
       </div>
 
       <div className="overflow-hidden rounded-2xl border border-fuchsia-200">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[1080px] text-left text-sm">
+          <table className="w-full min-w-[1120px] text-left text-sm">
             <thead className="bg-fuchsia-50 text-xs uppercase tracking-[0.16em] text-slate-600">
               <tr>
+                <th className="w-12 px-4 py-3 font-semibold">
+                  <span className="sr-only">Seleziona</span>
+                </th>
                 <th className="px-4 py-3 font-semibold">Nome</th>
                 <th className="px-4 py-3 font-semibold">Etichetta promozionale</th>
                 <th className="px-4 py-3 font-semibold">Stato</th>
@@ -92,13 +139,20 @@ export function ProductList({
             <tbody className="divide-y divide-fuchsia-100 bg-white">
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-slate-500">
+                  <td colSpan={8} className="px-4 py-8 text-center text-slate-500">
                     Caricamento prodotti...
                   </td>
                 </tr>
               ) : visibleProducts.length > 0 ? (
                 visibleProducts.map((product) => (
                   <tr key={product.id} className="align-top text-slate-700">
+                    <td className="px-4 py-4">
+                      <Checkbox
+                        checked={selectedProductIds.includes(product.id)}
+                        aria-label={`Seleziona ${product.name || "prodotto"}`}
+                        onCheckedChange={(checked) => updateSelectedProduct(product.id, checked === true)}
+                      />
+                    </td>
                     <td className="px-4 py-4">
                       <div className="flex flex-wrap items-center gap-2">
                         <p className="font-medium text-slate-950">{product.name || "—"}</p>
@@ -186,7 +240,7 @@ export function ProductList({
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-slate-500">
+                  <td colSpan={8} className="px-4 py-8 text-center text-slate-500">
                     Nessun prodotto da mostrare.
                   </td>
                 </tr>

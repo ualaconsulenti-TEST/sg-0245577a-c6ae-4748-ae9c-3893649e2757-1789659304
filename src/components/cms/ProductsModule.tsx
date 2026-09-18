@@ -528,6 +528,24 @@ export function ProductsModule() {
     await loadProducts();
   }
 
+  async function deleteSelectedProducts(productIds: string[]): Promise<void> {
+    if (productIds.length === 0) {
+      return;
+    }
+
+    setListError(null);
+    setSuccessMessage(null);
+    const { error } = await cmsSupabase.from("products").delete().in("id", productIds);
+
+    if (error) {
+      setListError(error.message);
+      return;
+    }
+
+    setSuccessMessage("Prodotti selezionati eliminati.");
+    await loadProducts();
+  }
+
   async function duplicateProduct(product: ProductRow): Promise<void> {
     if (!tenantId) {
       setListError("Cliente non disponibile. Ricarica la pagina e riprova.");
@@ -632,6 +650,7 @@ export function ProductsModule() {
             onPause={(productId) => void updateProductStatus(productId, "in_pausa")}
             onReactivate={(productId) => void updateProductStatus(productId, "pubblicato")}
             onPermanentDelete={(productId) => void deleteProductPermanently(productId)}
+            onBulkDelete={(productIds) => void deleteSelectedProducts(productIds)}
           />
         </CardContent>
       </Card>
