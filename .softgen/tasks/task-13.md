@@ -1,6 +1,6 @@
 ---
 title: Responsive mobile CMS
-status: in_progress
+status: done
 priority: high
 type: chore
 tags: [responsive, mobile, cms]
