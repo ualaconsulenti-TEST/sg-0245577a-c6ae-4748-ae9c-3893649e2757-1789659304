@@ -18,9 +18,9 @@ Applicare solo modifiche visuali/layout responsive su schermi smartphone 320-414
 - [x] Rendere le tabelle del modulo Prodotti contenute e scorrevoli nel proprio riquadro su mobile
 - [x] Impilare verticalmente i campi del form Prodotti su mobile
 - [x] Rendere tabelle e azioni Super Admin utilizzabili senza sovrapposizioni su mobile
-- [ ] Correggere il logo UALÀ tagliato su schermi da 320px in su
-- [ ] Impilare ricerca cliente e pulsante Nuovo cliente nella parte alta Super Admin su mobile
-- [ ] Rendere la vista prodotti archiviati leggibile e utilizzabile su mobile
+- [x] Correggere il logo UALÀ tagliato su schermi da 320px in su
+- [x] Impilare ricerca cliente e pulsante Nuovo cliente nella parte alta Super Admin su mobile
+- [x] Rendere la vista prodotti archiviati leggibile e utilizzabile su mobile
 
 ## Acceptance
 Login, dashboard, Prodotti e Super Admin sono utilizzabili a 320-414px senza scorrimento orizzontale dell'intera pagina.

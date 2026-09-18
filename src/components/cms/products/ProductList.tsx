@@ -101,7 +101,7 @@ export function ProductList({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="min-w-0 max-w-full space-y-4">
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
         <div>
           <h2 className="text-xl font-semibold text-slate-950">Elenco prodotti</h2>
@@ -119,8 +119,8 @@ export function ProductList({
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-fuchsia-200">
-        <div className="w-full overflow-x-auto">
+      <div className="max-w-full overflow-hidden rounded-2xl border border-fuchsia-200">
+        <div className="w-full overflow-x-auto overscroll-x-contain">
           <table className="w-full min-w-[1120px] text-left text-sm">
             <thead className="bg-fuchsia-50 text-xs uppercase tracking-[0.16em] text-slate-600">
               <tr>
@@ -133,7 +133,7 @@ export function ProductList({
                 <th className="px-4 py-3 font-semibold">Prezzo</th>
                 <th className="px-4 py-3 font-semibold">Sconto</th>
                 <th className="px-4 py-3 font-semibold">Promo</th>
-                <th className="px-4 py-3 font-semibold">Azioni</th>
+                <th className="min-w-[260px] px-4 py-3 font-semibold">Azioni</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-fuchsia-100 bg-white">
@@ -178,36 +178,36 @@ export function ProductList({
                       {isFutureDate(product.promo_scade_il) ? <span className="text-sm font-medium text-primary">Promo fino al {formatDate(product.promo_scade_il)}</span> : "—"}
                     </td>
                     <td className="px-4 py-4">
-                      <div className="flex flex-wrap gap-2">
-                        <Button type="button" size="sm" variant="outline" aria-label="Anteprima prodotto" onClick={() => onPreview(product)}>
+                      <div className="flex min-w-[240px] flex-col items-start gap-2 sm:flex-row sm:flex-wrap">
+                        <Button type="button" size="sm" variant="outline" className="w-full justify-center sm:w-auto" aria-label="Anteprima prodotto" onClick={() => onPreview(product)}>
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button type="button" size="sm" variant="outline" onClick={() => onEdit(product)}>
+                        <Button type="button" size="sm" variant="outline" className="w-full justify-center sm:w-auto" onClick={() => onEdit(product)}>
                           Modifica
                         </Button>
-                        <Button type="button" size="sm" variant="outline" onClick={() => onDuplicate(product)}>
+                        <Button type="button" size="sm" variant="outline" className="w-full justify-center sm:w-auto" onClick={() => onDuplicate(product)}>
                           Duplica
                         </Button>
                         {product.status === "pubblicato" ? (
-                          <Button type="button" size="sm" variant="outline" onClick={() => onPause(product.id)}>
+                          <Button type="button" size="sm" variant="outline" className="w-full justify-center sm:w-auto" onClick={() => onPause(product.id)}>
                             Metti in pausa
                           </Button>
                         ) : null}
                         {product.status === "in_pausa" ? (
-                          <Button type="button" size="sm" variant="outline" onClick={() => onReactivate(product.id)}>
+                          <Button type="button" size="sm" variant="outline" className="w-full justify-center sm:w-auto" onClick={() => onReactivate(product.id)}>
                             Riattiva
                           </Button>
                         ) : null}
                         {product.status === "archiviato" ? (
                           <>
-                            <Button type="button" size="sm" variant="outline" onClick={() => onReactivate(product.id)}>
+                            <Button type="button" size="sm" variant="outline" className="w-full justify-center sm:w-auto" onClick={() => onReactivate(product.id)}>
                               Riattiva
                             </Button>
                             <Button
                               type="button"
                               size="sm"
                               variant="outline"
-                              className="border-slate-950 bg-slate-950 text-white hover:bg-slate-800 hover:text-white"
+                              className="w-full justify-center whitespace-nowrap border-slate-950 bg-slate-950 text-white hover:bg-slate-800 hover:text-white sm:w-auto"
                               onClick={() => {
                                 const confirmation = window.prompt("Scrivi \"elimina\" per eliminare definitivamente questo prodotto.");
 
@@ -224,7 +224,7 @@ export function ProductList({
                             type="button"
                             size="sm"
                             variant="outline"
-                            className="border-red-200 text-red-700 hover:bg-red-50"
+                            className="w-full justify-center border-red-200 text-red-700 hover:bg-red-50 sm:w-auto"
                             onClick={() => {
                               if (window.confirm("Vuoi eliminare questo prodotto dall'elenco principale?")) {
                                 onArchive(product.id);

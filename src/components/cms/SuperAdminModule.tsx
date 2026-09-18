@@ -464,17 +464,14 @@ export function SuperAdminModule() {
 
   return (
     <div className="space-y-6">
-      <Card className="border-fuchsia-200 shadow-sm">
-        <CardHeader className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div>
+      <Card className="min-w-0 overflow-hidden border-fuchsia-200 shadow-sm">
+        <CardHeader className="min-w-0">
+          <div className="min-w-0">
             <CardTitle className="text-2xl">Super Admin</CardTitle>
             <CardDescription>Gestione tecnica clienti, moduli e utenti collegati.</CardDescription>
           </div>
-          <Button type="button" className="w-full bg-primary hover:bg-primary/90 sm:w-auto" onClick={() => setIsNewTenantOpen((isOpen) => !isOpen)}>
-            Nuovo cliente
-          </Button>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="min-w-0 space-y-4">
           {feedback ? (
             <Alert className="border-fuchsia-200 bg-fuchsia-50 text-slate-800">
               <AlertDescription>{feedback}</AlertDescription>
@@ -486,9 +483,14 @@ export function SuperAdminModule() {
             </Alert>
           ) : null}
 
-          <div className="space-y-2">
-            <Label htmlFor="tenant-search">Cerca cliente</Label>
-            <Input id="tenant-search" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Cerca per nome cliente" />
+          <div className="grid min-w-0 gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+            <div className="min-w-0 space-y-2">
+              <Label htmlFor="tenant-search">Cerca cliente</Label>
+              <Input id="tenant-search" className="w-full" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Cerca per nome cliente" />
+            </div>
+            <Button type="button" className="w-full bg-primary hover:bg-primary/90 sm:w-auto" onClick={() => setIsNewTenantOpen((isOpen) => !isOpen)}>
+              Nuovo cliente
+            </Button>
           </div>
 
           {isNewTenantOpen ? (

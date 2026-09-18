@@ -70,7 +70,7 @@ function LoginScreen() {
     <main className="flex min-h-screen flex-col bg-slate-50 px-4 py-8 text-slate-950 sm:px-6 sm:py-10">
       <div className="mx-auto w-full max-w-2xl flex-1">
         <div className="mb-8 text-center sm:mb-12">
-          <Image src="/uala-logo.jpg" alt="UALA Logo" width={288} height={288} className="mx-auto h-40 w-40 rounded-xl object-cover sm:h-72 sm:w-72" />
+          <Image src="/uala-logo.jpg" alt="UALA Logo" width={288} height={288} className="mx-auto h-40 w-40 rounded-xl object-contain sm:h-72 sm:w-72" />
           <p className="mt-4 text-xs font-semibold uppercase tracking-[0.24em] text-primary sm:text-sm sm:tracking-[0.3em]">UALÀ CMS</p>
         </div>
 
@@ -220,7 +220,7 @@ export function AdminShell({ tenant, enabledModules, isSuperAdmin = false, activ
       <header className="sticky top-0 z-20 border-b border-fuchsia-200 bg-white/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:gap-4 sm:px-6 sm:py-4 lg:px-8">
           <div className="flex min-w-0 items-center gap-3">
-            <Image src="/uala-logo.jpg" alt="UALA Logo" width={40} height={40} className="h-10 w-10 shrink-0 rounded-lg object-cover" />
+            <Image src="/uala-logo.jpg" alt="UALA Logo" width={40} height={40} className="h-10 w-10 shrink-0 rounded-lg object-contain" />
             <div className="min-w-0">
               <p className="truncate text-[10px] font-semibold uppercase tracking-[0.22em] text-primary sm:text-xs sm:tracking-[0.3em]">UALÀ CMS</p>
               <p className="mt-1 truncate text-sm font-semibold text-slate-950">{tenantLabel}</p>
