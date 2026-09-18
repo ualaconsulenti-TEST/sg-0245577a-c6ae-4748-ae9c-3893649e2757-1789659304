@@ -109,18 +109,18 @@ export function ProductList({
         </div>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           {selectedCount > 0 ? (
-            <Button type="button" variant="outline" className="border-red-200 text-red-700 hover:bg-red-50" onClick={() => void deleteSelectedProducts()}>
+            <Button type="button" variant="outline" className="w-full border-red-200 text-red-700 hover:bg-red-50 sm:w-auto" onClick={() => void deleteSelectedProducts()}>
               Elimina selezionati ({selectedCount})
             </Button>
           ) : null}
-          <Button type="button" variant="outline" onClick={onToggleArchived}>
+          <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={onToggleArchived}>
             {showArchived ? "Nascondi archiviati" : "Mostra archiviati"}
           </Button>
         </div>
       </div>
 
       <div className="overflow-hidden rounded-2xl border border-fuchsia-200">
-        <div className="overflow-x-auto">
+        <div className="w-full overflow-x-auto">
           <table className="w-full min-w-[1120px] text-left text-sm">
             <thead className="bg-fuchsia-50 text-xs uppercase tracking-[0.16em] text-slate-600">
               <tr>

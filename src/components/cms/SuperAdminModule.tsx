@@ -470,7 +470,7 @@ export function SuperAdminModule() {
             <CardTitle className="text-2xl">Super Admin</CardTitle>
             <CardDescription>Gestione tecnica clienti, moduli e utenti collegati.</CardDescription>
           </div>
-          <Button type="button" className="bg-primary hover:bg-primary/90" onClick={() => setIsNewTenantOpen((isOpen) => !isOpen)}>
+          <Button type="button" className="w-full bg-primary hover:bg-primary/90 sm:w-auto" onClick={() => setIsNewTenantOpen((isOpen) => !isOpen)}>
             Nuovo cliente
           </Button>
         </CardHeader>
@@ -534,14 +534,14 @@ export function SuperAdminModule() {
                     </div>
                     <CardDescription>ID cliente: {tenant.id}</CardDescription>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    <Button type="button" variant="outline" disabled={actionTenantId === tenant.id} onClick={() => void setTenantStatus(tenant)}>
+                  <div className="grid gap-2 sm:flex sm:flex-wrap">
+                    <Button type="button" variant="outline" className="w-full sm:w-auto" disabled={actionTenantId === tenant.id} onClick={() => void setTenantStatus(tenant)}>
                       {tenant.status === "sospeso" ? "Riattiva" : "Sospendi"}
                     </Button>
                     <Button
                       type="button"
                       variant="outline"
-                      className="border-red-200 text-red-700 hover:bg-red-50"
+                      className="w-full border-red-200 text-red-700 hover:bg-red-50 sm:w-auto"
                       onClick={() => {
                         setDeleteTenantId(tenant.id);
                         setDeleteConfirmText("");
@@ -552,7 +552,7 @@ export function SuperAdminModule() {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="grid gap-6 xl:grid-cols-[320px_1fr]">
+              <CardContent className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
                 <div className="space-y-4">
                   <div className="space-y-3">
                     <p className="text-sm font-semibold text-slate-800">Moduli disponibili</p>
@@ -579,13 +579,14 @@ export function SuperAdminModule() {
                     <div className="space-y-3 rounded-2xl border border-red-200 bg-red-50 p-4">
                       <p className="text-sm font-semibold text-red-800">Scrivi esattamente “{tenant.name}” per confermare.</p>
                       <Input value={deleteConfirmText} onChange={(event) => setDeleteConfirmText(event.target.value)} />
-                      <div className="flex gap-2">
-                        <Button type="button" variant="destructive" disabled={!deleteEnabled || actionTenantId === tenant.id} onClick={() => void deleteTenant(tenant)}>
+                      <div className="flex flex-col gap-2 sm:flex-row">
+                        <Button type="button" variant="destructive" className="w-full sm:w-auto" disabled={!deleteEnabled || actionTenantId === tenant.id} onClick={() => void deleteTenant(tenant)}>
                           Conferma eliminazione
                         </Button>
                         <Button
                           type="button"
                           variant="outline"
+                          className="w-full sm:w-auto"
                           onClick={() => {
                             setDeleteTenantId(null);
                             setDeleteConfirmText("");
@@ -602,55 +603,57 @@ export function SuperAdminModule() {
                   <div>
                     <p className="text-sm font-semibold text-slate-800">Utenti collegati</p>
                     <div className="mt-3 overflow-hidden rounded-2xl border border-slate-200">
-                      <table className="w-full text-left text-sm">
-                        <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-                          <tr>
-                            <th className="px-4 py-3 font-semibold">Email</th>
-                            <th className="px-4 py-3 font-semibold">Stato</th>
-                            <th className="px-4 py-3 font-semibold">Ultimo accesso</th>
-                            <th className="px-4 py-3 font-semibold">Ruolo</th>
-                            <th className="px-4 py-3 font-semibold">Azioni</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100 bg-white">
-                          {users.length > 0 ? (
-                            users.map((user) => (
-                              <tr key={`${tenant.id}-${user.user_id}`}>
-                                <td className="px-4 py-3 text-slate-800">{user.email}</td>
-                                <td className="px-4 py-3">
-                                  <Badge variant={user.confermato ? "outline" : "secondary"}>{user.confermato ? "Attivo" : "In attesa"}</Badge>
-                                </td>
-                                <td className="px-4 py-3 text-slate-600">{formatDate(user.last_login_at)}</td>
-                                <td className="px-4 py-3">
-                                  <select
-                                    className="rounded-md border border-slate-200 bg-white px-2 py-1 text-sm"
-                                    value={user.role}
-                                    disabled={actionTenantId === tenant.id}
-                                    onChange={(event) => void updateUserRole(tenant, user, event.target.value)}
-                                  >
-                                    {roleOptions.map((roleOption) => (
-                                      <option key={roleOption} value={roleOption}>
-                                        {roleOption}
-                                      </option>
-                                    ))}
-                                  </select>
-                                </td>
-                                <td className="px-4 py-3">
-                                  <Button type="button" variant="outline" size="sm" disabled={actionTenantId === tenant.id} onClick={() => void removeUserFromTenant(tenant, user)}>
-                                    Rimuovi
-                                  </Button>
+                      <div className="w-full overflow-x-auto">
+                        <table className="w-full min-w-[760px] text-left text-sm">
+                          <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                            <tr>
+                              <th className="px-4 py-3 font-semibold">Email</th>
+                              <th className="px-4 py-3 font-semibold">Stato</th>
+                              <th className="px-4 py-3 font-semibold">Ultimo accesso</th>
+                              <th className="px-4 py-3 font-semibold">Ruolo</th>
+                              <th className="px-4 py-3 font-semibold">Azioni</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 bg-white">
+                            {users.length > 0 ? (
+                              users.map((user) => (
+                                <tr key={`${tenant.id}-${user.user_id}`}>
+                                  <td className="px-4 py-3 text-slate-800">{user.email}</td>
+                                  <td className="px-4 py-3">
+                                    <Badge variant={user.confermato ? "outline" : "secondary"}>{user.confermato ? "Attivo" : "In attesa"}</Badge>
+                                  </td>
+                                  <td className="px-4 py-3 text-slate-600">{formatDate(user.last_login_at)}</td>
+                                  <td className="px-4 py-3">
+                                    <select
+                                      className="rounded-md border border-slate-200 bg-white px-2 py-1 text-sm"
+                                      value={user.role}
+                                      disabled={actionTenantId === tenant.id}
+                                      onChange={(event) => void updateUserRole(tenant, user, event.target.value)}
+                                    >
+                                      {roleOptions.map((roleOption) => (
+                                        <option key={roleOption} value={roleOption}>
+                                          {roleOption}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </td>
+                                  <td className="px-4 py-3">
+                                    <Button type="button" variant="outline" size="sm" disabled={actionTenantId === tenant.id} onClick={() => void removeUserFromTenant(tenant, user)}>
+                                      Rimuovi
+                                    </Button>
+                                  </td>
+                                </tr>
+                              ))
+                            ) : (
+                              <tr>
+                                <td className="px-4 py-3 text-slate-500" colSpan={5}>
+                                  Nessun utente collegato.
                                 </td>
                               </tr>
-                            ))
-                          ) : (
-                            <tr>
-                              <td className="px-4 py-3 text-slate-500" colSpan={5}>
-                                Nessun utente collegato.
-                              </td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
                   </div>
 
@@ -704,36 +707,38 @@ export function SuperAdminModule() {
         </CardHeader>
         <CardContent>
           <div className="overflow-hidden rounded-2xl border border-slate-200">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-                <tr>
-                  <th className="px-4 py-3 font-semibold">Data/ora</th>
-                  <th className="px-4 py-3 font-semibold">Chi</th>
-                  <th className="px-4 py-3 font-semibold">Cliente</th>
-                  <th className="px-4 py-3 font-semibold">Azione</th>
-                  <th className="px-4 py-3 font-semibold">Dettagli</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 bg-white">
-                {activityLog.length > 0 ? (
-                  activityLog.map((row, index) => (
-                    <tr key={row.id || `${row.created_at}-${index}`}>
-                      <td className="px-4 py-3 text-slate-700">{formatDate(row.created_at || null)}</td>
-                      <td className="px-4 py-3 text-slate-700">{row.actor_email || "-"}</td>
-                      <td className="px-4 py-3 text-slate-700">{row.tenant_name || "-"}</td>
-                      <td className="px-4 py-3 text-slate-700">{row.action || "-"}</td>
-                      <td className="px-4 py-3 text-slate-600">{detailsToText(row.details)}</td>
-                    </tr>
-                  ))
-                ) : (
+            <div className="w-full overflow-x-auto">
+              <table className="w-full min-w-[900px] text-left text-sm">
+                <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                   <tr>
-                    <td className="px-4 py-3 text-slate-500" colSpan={5}>
-                      Nessuna attività trovata.
-                    </td>
+                    <th className="px-4 py-3 font-semibold">Data/ora</th>
+                    <th className="px-4 py-3 font-semibold">Chi</th>
+                    <th className="px-4 py-3 font-semibold">Cliente</th>
+                    <th className="px-4 py-3 font-semibold">Azione</th>
+                    <th className="px-4 py-3 font-semibold">Dettagli</th>
                   </tr>
-                )}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-100 bg-white">
+                  {activityLog.length > 0 ? (
+                    activityLog.map((row, index) => (
+                      <tr key={row.id || `${row.created_at}-${index}`}>
+                        <td className="px-4 py-3 text-slate-700">{formatDate(row.created_at || null)}</td>
+                        <td className="px-4 py-3 text-slate-700">{row.actor_email || "-"}</td>
+                        <td className="px-4 py-3 text-slate-700">{row.tenant_name || "-"}</td>
+                        <td className="px-4 py-3 text-slate-700">{row.action || "-"}</td>
+                        <td className="px-4 py-3 text-slate-600">{detailsToText(row.details)}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td className="px-4 py-3 text-slate-500" colSpan={5}>
+                        Nessuna attività trovata.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </CardContent>
       </Card>

@@ -76,8 +76,8 @@ export function ProductForm({ form, formError, isEditing, relatedProducts, onCha
       <CardHeader>
         <CardTitle>{isEditing ? "Modifica prodotto" : "Nuovo prodotto"}</CardTitle>
       </CardHeader>
-      <CardContent>
-        <form className="space-y-6" onSubmit={onContinue}>
+      <CardContent className="min-w-0">
+        <form className="space-y-5 sm:space-y-6" onSubmit={onContinue}>
           {formError ? (
             <Alert variant="destructive">
               <AlertDescription>{formError}</AlertDescription>
@@ -275,10 +275,10 @@ export function ProductForm({ form, formError, isEditing, relatedProducts, onCha
             <Textarea rows={4} value={form.note_interne} onChange={(event) => updateField("note_interne", event.target.value)} />
           </section>
 
-          <div className="flex flex-wrap gap-3">
-            <Button type="submit" className="bg-primary hover:bg-primary/90">Continua</Button>
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+            <Button type="submit" className="w-full bg-primary hover:bg-primary/90 sm:w-auto">Continua</Button>
             {isEditing ? (
-              <Button type="button" variant="outline" onClick={onCancelEdit}>Annulla modifica</Button>
+              <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={onCancelEdit}>Annulla modifica</Button>
             ) : null}
           </div>
         </form>

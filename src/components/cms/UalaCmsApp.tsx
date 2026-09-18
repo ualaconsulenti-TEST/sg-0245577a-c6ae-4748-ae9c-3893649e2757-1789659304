@@ -67,16 +67,16 @@ function LoginScreen() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col bg-slate-50 px-6 py-10 text-slate-950">
+    <main className="flex min-h-screen flex-col bg-slate-50 px-4 py-8 text-slate-950 sm:px-6 sm:py-10">
       <div className="mx-auto w-full max-w-2xl flex-1">
-        <div className="mb-12 text-center">
-          <Image src="/uala-logo.jpg" alt="UALA Logo" width={288} height={288} className="mx-auto rounded-xl" />
-          <p className="mt-4 text-sm font-semibold uppercase tracking-[0.3em] text-primary">UALÀ CMS</p>
+        <div className="mb-8 text-center sm:mb-12">
+          <Image src="/uala-logo.jpg" alt="UALA Logo" width={288} height={288} className="mx-auto h-40 w-40 rounded-xl object-cover sm:h-72 sm:w-72" />
+          <p className="mt-4 text-xs font-semibold uppercase tracking-[0.24em] text-primary sm:text-sm sm:tracking-[0.3em]">UALÀ CMS</p>
         </div>
 
-        <div className="mx-auto max-w-xl space-y-8">
+        <div className="mx-auto max-w-xl space-y-6 sm:space-y-8">
           <div className="text-center">
-            <h1 className="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+            <h1 className="text-3xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
               Il pannello operativo per gestire ogni cliente con chiarezza.
             </h1>
             <p className="mt-5 text-base leading-7 text-slate-600">
@@ -177,67 +177,79 @@ function TenantErrorScreen({
 export function AdminShell({ tenant, enabledModules, isSuperAdmin = false, activeModule, onLogout, children }: AdminShellProps) {
   const canUseProducts = enabledModules.includes("prodotti");
   const tenantLabel = tenant ? `Cliente: ${tenant.name}` : "Pannello Super Admin";
+  const renderModulesNavigation = () => (
+    <nav className="mt-4 space-y-2">
+      {canUseProducts ? (
+        <Link
+          href="/products"
+          className={`block rounded-2xl px-4 py-3 text-sm font-semibold transition ${
+            activeModule === "prodotti"
+              ? "bg-fuchsia-700 text-white shadow-sm"
+              : "text-slate-700 hover:bg-fuchsia-50 hover:text-slate-950"
+          }`}
+        >
+          Prodotti
+        </Link>
+      ) : isSuperAdmin && !tenant ? (
+        <p className="rounded-2xl bg-slate-100 px-4 py-3 text-sm leading-6 text-slate-600">
+          Area agenzia riservata.
+        </p>
+      ) : (
+        <p className="rounded-2xl bg-slate-100 px-4 py-3 text-sm leading-6 text-slate-600">
+          Nessun modulo disponibile per questo cliente.
+        </p>
+      )}
+
+      {isSuperAdmin ? (
+        <Link
+          href="/super-admin"
+          className={`block rounded-2xl px-4 py-3 text-sm font-semibold transition ${
+            activeModule === "super-admin"
+              ? "bg-slate-900 text-white shadow-sm"
+              : "text-slate-700 hover:bg-slate-100 hover:text-slate-950"
+          }`}
+        >
+          Super Admin
+        </Link>
+      ) : null}
+    </nav>
+  );
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-950">
       <header className="sticky top-0 z-20 border-b border-fuchsia-200 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3">
-            <Image src="/uala-logo.jpg" alt="UALA Logo" width={40} height={40} className="rounded-lg" />
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-primary">UALÀ CMS</p>
-              <p className="mt-1 text-sm font-semibold text-slate-950">{tenantLabel}</p>
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:gap-4 sm:px-6 sm:py-4 lg:px-8">
+          <div className="flex min-w-0 items-center gap-3">
+            <Image src="/uala-logo.jpg" alt="UALA Logo" width={40} height={40} className="h-10 w-10 shrink-0 rounded-lg object-cover" />
+            <div className="min-w-0">
+              <p className="truncate text-[10px] font-semibold uppercase tracking-[0.22em] text-primary sm:text-xs sm:tracking-[0.3em]">UALÀ CMS</p>
+              <p className="mt-1 truncate text-sm font-semibold text-slate-950">{tenantLabel}</p>
             </div>
           </div>
-          <Button type="button" variant="outline" className="border-fuchsia-200 hover:bg-fuchsia-50" onClick={() => void onLogout()}>
+          <Button type="button" variant="outline" className="shrink-0 border-fuchsia-200 hover:bg-fuchsia-50" onClick={() => void onLogout()}>
             Logout
           </Button>
         </div>
       </header>
 
-      <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[260px_1fr] lg:px-8">
-        <aside className="h-fit rounded-3xl border border-fuchsia-200 bg-white p-4 shadow-sm">
-          <p className="px-3 text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Moduli attivi</p>
-          <nav className="mt-4 space-y-2">
-            {canUseProducts ? (
-              <Link
-                href="/products"
-                className={`block rounded-2xl px-4 py-3 text-sm font-semibold transition ${
-                  activeModule === "prodotti"
-                    ? "bg-fuchsia-700 text-white shadow-sm"
-                    : "text-slate-700 hover:bg-fuchsia-50 hover:text-slate-950"
-                }`}
-              >
-                Prodotti
-              </Link>
-            ) : isSuperAdmin && !tenant ? (
-              <p className="rounded-2xl bg-slate-100 px-4 py-3 text-sm leading-6 text-slate-600">
-                Area agenzia riservata.
-              </p>
-            ) : (
-              <p className="rounded-2xl bg-slate-100 px-4 py-3 text-sm leading-6 text-slate-600">
-                Nessun modulo disponibile per questo cliente.
-              </p>
-            )}
+      <div className="mx-auto grid max-w-7xl gap-4 px-4 py-4 sm:gap-6 sm:px-6 sm:py-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:px-8">
+        <details className="rounded-3xl border border-fuchsia-200 bg-white p-4 shadow-sm lg:hidden">
+          <summary className="cursor-pointer text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+            ☰ Moduli attivi
+          </summary>
+          {renderModulesNavigation()}
+          <Separator className="my-4" />
+          <p className="px-3 text-xs leading-5 text-slate-500">I moduli visibili dipendono dal pacchetto attivato per il tuo account. Per attivarne di nuovi contatta UALÀ.</p>
+        </details>
 
-            {isSuperAdmin ? (
-              <Link
-                href="/super-admin"
-                className={`block rounded-2xl px-4 py-3 text-sm font-semibold transition ${
-                  activeModule === "super-admin"
-                    ? "bg-slate-900 text-white shadow-sm"
-                    : "text-slate-700 hover:bg-slate-100 hover:text-slate-950"
-                }`}
-              >
-                Super Admin
-              </Link>
-            ) : null}
-          </nav>
+        <aside className="hidden h-fit rounded-3xl border border-fuchsia-200 bg-white p-4 shadow-sm lg:block">
+          <p className="px-3 text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Moduli attivi</p>
+          {renderModulesNavigation()}
           <Separator className="my-4" />
           <p className="px-3 text-xs leading-5 text-slate-500">I moduli visibili dipendono dal pacchetto attivato per il tuo account. Per attivarne di nuovi contatta UALÀ.</p>
         </aside>
 
-        <section>{children}</section>
+        <section className="min-w-0">{children}</section>
       </div>
     </main>
   );
