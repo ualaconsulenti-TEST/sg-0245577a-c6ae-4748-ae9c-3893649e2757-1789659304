@@ -5,7 +5,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenantSession } from "@/hooks/use-tenant-session";
-import type { ProductFormValues, ProductImageRow, ProductRelatedRow, ProductRow, ProductStatus } from "@/types/uala-cms";
+import type {
+  ProductBenefitRow,
+  ProductFaqRow,
+  ProductFormValues,
+  ProductHighlightRow,
+  ProductImageRow,
+  ProductRelatedRow,
+  ProductRow,
+  ProductStatus,
+} from "@/types/uala-cms";
 import { ProductForm } from "./products/ProductForm";
 import { ProductList } from "./products/ProductList";
 import { ProductPreview } from "./products/ProductPreview";
@@ -50,6 +59,9 @@ export function ProductsModule() {
   const [products, setProducts] = useState<ProductRow[]>([]);
   const [images, setImages] = useState<ProductImageRow[]>([]);
   const [relatedRows, setRelatedRows] = useState<ProductRelatedRow[]>([]);
+  const [benefits, setBenefits] = useState<ProductBenefitRow[]>([]);
+  const [highlights, setHighlights] = useState<ProductHighlightRow[]>([]);
+  const [faqs, setFaqs] = useState<ProductFaqRow[]>([]);
   const [form, setForm] = useState<ProductFormValues>(emptyProductForm);
   const [formMode, setFormMode] = useState<FormMode>("form");
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
@@ -74,6 +86,27 @@ export function ProductsModule() {
       return groups;
     }, {});
   }, [relatedRows]);
+
+  const benefitsByProduct = useMemo(() => {
+    return benefits.reduce<Record<string, ProductBenefitRow[]>>((groups, benefit) => {
+      groups[benefit.product_id] = [...(groups[benefit.product_id] || []), benefit];
+      return groups;
+    }, {});
+  }, [benefits]);
+
+  const highlightsByProduct = useMemo(() => {
+    return highlights.reduce<Record<string, ProductHighlightRow[]>>((groups, highlight) => {
+      groups[highlight.product_id] = [...(groups[highlight.product_id] || []), highlight];
+      return groups;
+    }, {});
+  }, [highlights]);
+
+  const faqsByProduct = useMemo(() => {
+    return faqs.reduce<Record<string, ProductFaqRow[]>>((groups, faq) => {
+      groups[faq.product_id] = [...(groups[faq.product_id] || []), faq];
+      return groups;
+    }, {});
+  }, [faqs]);
 
   const relatedProducts = useMemo(() => products.filter((product) => product.id !== editingProductId), [editingProductId, products]);
 
@@ -123,6 +156,9 @@ export function ProductsModule() {
       setProducts([]);
       setImages([]);
       setRelatedRows([]);
+      setBenefits([]);
+      setHighlights([]);
+      setFaqs([]);
       setListError(productsError.message);
       setIsLoadingProducts(false);
       return;
@@ -134,6 +170,9 @@ export function ProductsModule() {
       setProducts((productRows || []).map(normalizeProductRow));
       setImages([]);
       setRelatedRows([]);
+      setBenefits([]);
+      setHighlights([]);
+      setFaqs([]);
       setListError(imagesError.message);
       setIsLoadingProducts(false);
       return;
@@ -145,7 +184,52 @@ export function ProductsModule() {
       setProducts((productRows || []).map(normalizeProductRow));
       setImages((imageRows || []) as ProductImageRow[]);
       setRelatedRows([]);
+      setBenefits([]);
+      setHighlights([]);
+      setFaqs([]);
       setListError(relatedError.message);
+      setIsLoadingProducts(false);
+      return;
+    }
+
+    const { data: benefitData, error: benefitsError } = await cmsSupabase.from("product_benefits").select("id, tenant_id, product_id, text, position, created_at").order("position", { ascending: true });
+
+    if (benefitsError) {
+      setProducts((productRows || []).map(normalizeProductRow));
+      setImages((imageRows || []) as ProductImageRow[]);
+      setRelatedRows((relatedData || []) as ProductRelatedRow[]);
+      setBenefits([]);
+      setHighlights([]);
+      setFaqs([]);
+      setListError(benefitsError.message);
+      setIsLoadingProducts(false);
+      return;
+    }
+
+    const { data: highlightData, error: highlightsError } = await cmsSupabase.from("product_highlights").select("id, tenant_id, product_id, icon, title, description, position, created_at").order("position", { ascending: true });
+
+    if (highlightsError) {
+      setProducts((productRows || []).map(normalizeProductRow));
+      setImages((imageRows || []) as ProductImageRow[]);
+      setRelatedRows((relatedData || []) as ProductRelatedRow[]);
+      setBenefits((benefitData || []) as ProductBenefitRow[]);
+      setHighlights([]);
+      setFaqs([]);
+      setListError(highlightsError.message);
+      setIsLoadingProducts(false);
+      return;
+    }
+
+    const { data: faqData, error: faqsError } = await cmsSupabase.from("product_faqs").select("id, tenant_id, product_id, question, answer, position, created_at").order("position", { ascending: true });
+
+    if (faqsError) {
+      setProducts((productRows || []).map(normalizeProductRow));
+      setImages((imageRows || []) as ProductImageRow[]);
+      setRelatedRows((relatedData || []) as ProductRelatedRow[]);
+      setBenefits((benefitData || []) as ProductBenefitRow[]);
+      setHighlights((highlightData || []) as ProductHighlightRow[]);
+      setFaqs([]);
+      setListError(faqsError.message);
       setIsLoadingProducts(false);
       return;
     }
@@ -153,6 +237,9 @@ export function ProductsModule() {
     setProducts((productRows || []).map(normalizeProductRow));
     setImages((imageRows || []) as ProductImageRow[]);
     setRelatedRows((relatedData || []) as ProductRelatedRow[]);
+    setBenefits((benefitData || []) as ProductBenefitRow[]);
+    setHighlights((highlightData || []) as ProductHighlightRow[]);
+    setFaqs((faqData || []) as ProductFaqRow[]);
     setIsLoadingProducts(false);
   }, []);
 
@@ -298,6 +385,77 @@ export function ProductsModule() {
     }
   }
 
+  async function syncProductContent(productId: string): Promise<void> {
+    const deleteResults = await Promise.all([
+      cmsSupabase.from("product_benefits").delete().eq("product_id", productId),
+      cmsSupabase.from("product_highlights").delete().eq("product_id", productId),
+      cmsSupabase.from("product_faqs").delete().eq("product_id", productId),
+    ]);
+    const deleteError = deleteResults.find((result) => result.error)?.error;
+
+    if (deleteError) {
+      throw new Error(deleteError.message);
+    }
+
+    if (!tenantId) {
+      return;
+    }
+
+    const benefitRows = form.benefits
+      .map((benefit, index) => ({
+        tenant_id: tenantId,
+        product_id: productId,
+        text: benefit.text.trim(),
+        position: index,
+      }))
+      .filter((benefit) => benefit.text.length > 0);
+
+    if (benefitRows.length > 0) {
+      const { error } = await cmsSupabase.from("product_benefits").insert(benefitRows);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+    }
+
+    const highlightRows = form.highlights
+      .map((highlight, index) => ({
+        tenant_id: tenantId,
+        product_id: productId,
+        icon: highlight.icon.trim() || null,
+        title: highlight.title.trim(),
+        description: highlight.description.trim() || null,
+        position: index,
+      }))
+      .filter((highlight) => highlight.title.length > 0);
+
+    if (highlightRows.length > 0) {
+      const { error } = await cmsSupabase.from("product_highlights").insert(highlightRows);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+    }
+
+    const faqRows = form.faqs
+      .map((faq, index) => ({
+        tenant_id: tenantId,
+        product_id: productId,
+        question: faq.question.trim(),
+        answer: faq.answer.trim(),
+        position: index,
+      }))
+      .filter((faq) => faq.question.length > 0 && faq.answer.length > 0);
+
+    if (faqRows.length > 0) {
+      const { error } = await cmsSupabase.from("product_faqs").insert(faqRows);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+    }
+  }
+
   async function saveProduct(publishAt: string): Promise<void> {
     setIsSaving(true);
     setFormError(null);
@@ -332,6 +490,7 @@ export function ProductsModule() {
       if (productId) {
         await syncImages(productId);
         await syncRelatedProducts(productId);
+        await syncProductContent(productId);
       }
 
       resetForm();
@@ -352,6 +511,20 @@ export function ProductsModule() {
       return;
     }
 
+    await loadProducts();
+  }
+
+  async function deleteProductPermanently(productId: string): Promise<void> {
+    setListError(null);
+    setSuccessMessage(null);
+    const { error } = await cmsSupabase.from("products").delete().eq("id", productId);
+
+    if (error) {
+      setListError(error.message);
+      return;
+    }
+
+    setSuccessMessage("Prodotto eliminato definitivamente.");
     await loadProducts();
   }
 
@@ -403,13 +576,31 @@ export function ProductsModule() {
 
   function handleEdit(product: ProductRow): void {
     setEditingProductId(product.id);
-    setForm(productToForm(product, imagesByProduct[product.id] || [], relatedIdsByProduct[product.id] || []));
+    setForm(
+      productToForm(
+        product,
+        imagesByProduct[product.id] || [],
+        relatedIdsByProduct[product.id] || [],
+        benefitsByProduct[product.id] || [],
+        highlightsByProduct[product.id] || [],
+        faqsByProduct[product.id] || [],
+      ),
+    );
     setFormMode("form");
     setFormError(null);
     setSuccessMessage(null);
   }
 
-  const previewForm = previewProduct ? productToForm(previewProduct, imagesByProduct[previewProduct.id] || [], relatedIdsByProduct[previewProduct.id] || []) : null;
+  const previewForm = previewProduct
+    ? productToForm(
+        previewProduct,
+        imagesByProduct[previewProduct.id] || [],
+        relatedIdsByProduct[previewProduct.id] || [],
+        benefitsByProduct[previewProduct.id] || [],
+        highlightsByProduct[previewProduct.id] || [],
+        faqsByProduct[previewProduct.id] || [],
+      )
+    : null;
 
   return (
     <div className="space-y-6">
@@ -440,6 +631,7 @@ export function ProductsModule() {
             onArchive={(productId) => void updateProductStatus(productId, "archiviato")}
             onPause={(productId) => void updateProductStatus(productId, "in_pausa")}
             onReactivate={(productId) => void updateProductStatus(productId, "pubblicato")}
+            onPermanentDelete={(productId) => void deleteProductPermanently(productId)}
           />
         </CardContent>
       </Card>

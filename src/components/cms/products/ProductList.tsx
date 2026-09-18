@@ -15,6 +15,7 @@ interface ProductListProps {
   onArchive: (productId: string) => void;
   onPause: (productId: string) => void;
   onReactivate: (productId: string) => void;
+  onPermanentDelete: (productId: string) => void;
 }
 
 const statusClassNames: Record<ProductStatus, string> = {
@@ -58,6 +59,7 @@ export function ProductList({
   onArchive,
   onPause,
   onReactivate,
+  onPermanentDelete,
 }: ProductListProps) {
   const visibleProducts = showArchived ? products : products.filter((product) => product.status !== "archiviato");
 
@@ -142,19 +144,42 @@ export function ProductList({
                             Riattiva
                           </Button>
                         ) : null}
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="outline"
-                          className="border-red-200 text-red-700 hover:bg-red-50"
-                          onClick={() => {
-                            if (window.confirm("Vuoi eliminare questo prodotto dall'elenco principale?")) {
-                              onArchive(product.id);
-                            }
-                          }}
-                        >
-                          Elimina
-                        </Button>
+                        {product.status === "archiviato" ? (
+                          <>
+                            <Button type="button" size="sm" variant="outline" onClick={() => onReactivate(product.id)}>
+                              Riattiva
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              className="border-slate-950 bg-slate-950 text-white hover:bg-slate-800 hover:text-white"
+                              onClick={() => {
+                                const confirmation = window.prompt("Scrivi \"elimina\" per eliminare definitivamente questo prodotto.");
+
+                                if (confirmation === "elimina") {
+                                  onPermanentDelete(product.id);
+                                }
+                              }}
+                            >
+                              Elimina definitivamente
+                            </Button>
+                          </>
+                        ) : (
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            className="border-red-200 text-red-700 hover:bg-red-50"
+                            onClick={() => {
+                              if (window.confirm("Vuoi eliminare questo prodotto dall'elenco principale?")) {
+                                onArchive(product.id);
+                              }
+                            }}
+                          >
+                            Elimina
+                          </Button>
+                        )}
                       </div>
                     </td>
                   </tr>

@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import type { DeliveryType, ProductFormValues, ProductRow } from "@/types/uala-cms";
+import { ProductContentSections } from "./ProductContentSections";
 import { fileToDataUrl } from "./productUtils";
 
 interface ProductFormProps {
@@ -93,10 +94,12 @@ export function ProductForm({ form, formError, isEditing, relatedProducts, onCha
               <div className="space-y-2">
                 <Label htmlFor="product-category">Categoria</Label>
                 <Input id="product-category" value={form.category} onChange={(event) => updateField("category", event.target.value)} />
+                <p className="text-xs leading-5 text-slate-500">Esempio: Analisi personale</p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="product-code">Codice prodotto (SKU)</Label>
                 <Input id="product-code" value={form.codice_prodotto} onChange={(event) => updateField("codice_prodotto", event.target.value)} />
+                <p className="text-xs leading-5 text-slate-500">Codice interno per uso tuo, es. TN-001 — non obbligatorio, non visibile ai clienti</p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="product-badge">Etichetta promozionale (es. Novità, Ultimi posti)</Label>
@@ -158,7 +161,7 @@ export function ProductForm({ form, formError, isEditing, relatedProducts, onCha
               <Input id="short-description" value={form.short_description} onChange={(event) => updateField("short_description", event.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="long-description">Descrizione lunga</Label>
+              <Label htmlFor="long-description">Descrizione / Per chi è questo prodotto</Label>
               <div className="flex gap-2">
                 <Button type="button" variant="outline" size="sm" onClick={() => applyMarker("**")}>Grassetto</Button>
                 <Button type="button" variant="outline" size="sm" onClick={() => applyMarker("_")}>Corsivo</Button>
@@ -166,6 +169,8 @@ export function ProductForm({ form, formError, isEditing, relatedProducts, onCha
               <Textarea ref={longDescriptionRef} id="long-description" rows={5} value={form.long_description} onChange={(event) => updateField("long_description", event.target.value)} />
             </div>
           </section>
+
+          <ProductContentSections form={form} onChange={onChange} />
 
           <section className="space-y-4 rounded-2xl border border-fuchsia-100 p-4">
             <h3 className="font-semibold text-slate-950">Foto</h3>
@@ -216,6 +221,7 @@ export function ProductForm({ form, formError, isEditing, relatedProducts, onCha
               <div className="space-y-2">
                 <Label htmlFor="product-slug">Indirizzo pagina web (es. tema-natale)</Label>
                 <Input id="product-slug" value={form.slug} onChange={(event) => updateField("slug", event.target.value)} />
+                <p className="text-xs leading-5 text-slate-500">Solo l'ultima parte, senza barre, es. tema-natale — obbligatorio, altrimenti la pagina del prodotto non funziona</p>
               </div>
               <div className="space-y-2">
                 <Input placeholder="seo title" value={form.seo_title} onChange={(event) => updateField("seo_title", event.target.value)} />

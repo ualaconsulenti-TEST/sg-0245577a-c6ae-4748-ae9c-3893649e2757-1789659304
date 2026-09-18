@@ -45,11 +45,62 @@ export interface ProductRelatedRow {
   created_at?: string;
 }
 
+export interface ProductBenefitRow {
+  id: string;
+  tenant_id?: string;
+  product_id: string;
+  text: string;
+  position: number;
+  created_at?: string;
+}
+
+export interface ProductHighlightRow {
+  id: string;
+  tenant_id?: string;
+  product_id: string;
+  icon: string | null;
+  title: string;
+  description: string | null;
+  position: number;
+  created_at?: string;
+}
+
+export interface ProductFaqRow {
+  id: string;
+  tenant_id?: string;
+  product_id: string;
+  question: string;
+  answer: string;
+  position: number;
+  created_at?: string;
+}
+
 export interface ProductImageDraft {
   id?: string;
   image_url: string;
   position: number;
   alt_text: string;
+}
+
+export interface ProductBenefitDraft {
+  id?: string;
+  text: string;
+  position: number;
+}
+
+export interface ProductHighlightDraft {
+  id?: string;
+  icon: string;
+  title: string;
+  description: string;
+  position: number;
+}
+
+export interface ProductFaqDraft {
+  id?: string;
+  question: string;
+  answer: string;
+  position: number;
 }
 
 export interface ProductRow {
@@ -97,6 +148,9 @@ export interface ProductFormValues {
   quantita_disponibile: string;
   short_description: string;
   long_description: string;
+  benefits: ProductBenefitDraft[];
+  highlights: ProductHighlightDraft[];
+  faqs: ProductFaqDraft[];
   images: ProductImageDraft[];
   related_product_ids: string[];
   slug: string;

@@ -1,4 +1,4 @@
-import type { ProductFormValues, ProductImageRow, ProductRow, ProductStatus } from "@/types/uala-cms";
+import type { ProductBenefitRow, ProductFaqRow, ProductFormValues, ProductHighlightRow, ProductImageRow, ProductRow, ProductStatus } from "@/types/uala-cms";
 
 export const emptyProductForm: ProductFormValues = {
   name: "",
@@ -14,6 +14,9 @@ export const emptyProductForm: ProductFormValues = {
   quantita_disponibile: "",
   short_description: "",
   long_description: "",
+  benefits: [],
+  highlights: [],
+  faqs: [],
   images: [],
   related_product_ids: [],
   slug: "",
@@ -75,7 +78,14 @@ export function slugify(value: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
-export function productToForm(product: ProductRow, images: ProductImageRow[], relatedProductIds: string[] = []): ProductFormValues {
+export function productToForm(
+  product: ProductRow,
+  images: ProductImageRow[],
+  relatedProductIds: string[] = [],
+  benefits: ProductBenefitRow[] = [],
+  highlights: ProductHighlightRow[] = [],
+  faqs: ProductFaqRow[] = [],
+): ProductFormValues {
   const stockValue = product.stock === null || product.stock === undefined ? "" : String(product.stock);
 
   return {
@@ -92,6 +102,33 @@ export function productToForm(product: ProductRow, images: ProductImageRow[], re
     quantita_disponibile: product.quantita_disponibile === null || product.quantita_disponibile === undefined ? "" : String(product.quantita_disponibile),
     short_description: product.short_description || "",
     long_description: product.long_description || "",
+    benefits: benefits
+      .slice()
+      .sort((first, second) => first.position - second.position)
+      .map((benefit, index) => ({
+        id: benefit.id,
+        text: benefit.text || "",
+        position: index,
+      })),
+    highlights: highlights
+      .slice()
+      .sort((first, second) => first.position - second.position)
+      .map((highlight, index) => ({
+        id: highlight.id,
+        icon: highlight.icon || "",
+        title: highlight.title || "",
+        description: highlight.description || "",
+        position: index,
+      })),
+    faqs: faqs
+      .slice()
+      .sort((first, second) => first.position - second.position)
+      .map((faq, index) => ({
+        id: faq.id,
+        question: faq.question || "",
+        answer: faq.answer || "",
+        position: index,
+      })),
     images: images
       .slice()
       .sort((first, second) => first.position - second.position)
