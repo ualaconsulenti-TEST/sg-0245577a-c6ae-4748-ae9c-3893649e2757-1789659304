@@ -1,6 +1,6 @@
 ---
 title: Estensioni modulo Prodotti
-status: in_progress
+status: done
 priority: high
 type: feature
 tags: [prodotti, form, archiviati]
@@ -13,10 +13,10 @@ position: 10
 Applicare solo le modifiche richieste al modulo Prodotti. Usare le tabelle esistenti product_faqs, product_benefits, product_highlights senza creare schema. Aggiungere aiuti campi, tre sezioni dinamiche nel form e gestione prodotti archiviati con riattivazione/eliminazione definitiva.
 
 ## Checklist
-- [ ] Aggiungere testi di aiuto/esempio ai campi indicati del form prodotti
-- [ ] Aggiungere sezioni dinamiche Cosa riceve il cliente, Perché farlo, FAQ con aggiunta, riordino ed eliminazione
-- [ ] Salvare le nuove sezioni sulle tabelle esistenti col prodotto
-- [ ] Aggiungere Riattiva ed Elimina definitivamente per prodotti archiviati nella lista
+- [x] Aggiungere testi di aiuto/esempio ai campi indicati del form prodotti
+- [x] Aggiungere sezioni dinamiche Cosa riceve il cliente, Perché farlo, FAQ con aggiunta, riordino ed eliminazione
+- [x] Salvare le nuove sezioni sulle tabelle esistenti col prodotto
+- [x] Aggiungere Riattiva ed Elimina definitivamente per prodotti archiviati nella lista
 
 ## Acceptance
 Il form prodotti include gli aiuti e le tre sezioni richieste.
